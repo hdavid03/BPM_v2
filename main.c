@@ -37,6 +37,7 @@
 #include "usartf0.h"
 #include <string.h>
 
+
 //LED1 E1
 //LED2 E0
 #define LED1PORT PORTE
@@ -118,23 +119,25 @@ void setup(void)
 
 int main (void)
 {
-	char str[32];
+	char str[48];
 	char tmpstr[2];
+	char result_string[8];
 	tmpstr[1] = 0;
-	register16_t result;
-	
+
 	setup();
 	adc_setup();
 	adc_enable(&ADCA);
 	
+	
 	while(1)
 	{
-		ADCA.CTRLA |= (ADC_CH0 << ADC_CH0START_bp);
-
-		adc_wait_for_interrupt_flag(&ADCA, ADC_CH0);
-		/* Insert system clock initialization code here (sysclk_init()). */
-		result = adc_get_result(&ADCA, ADC_CH0);
+		adc_start_conversion(&ADCA, ADC_CH0);
+		// adc_wait_for_interrupt_flag(&ADCA, ADC_CH0);
 		
+		/* Insert system clock initialization code here (sysclk_init()). */
+		
+		// result = adc_get_result(&ADCA, ADC_CH0);
+		// sprintf(result_string, " %u", result);
 		/*
 		_delay_ms(250);
 		LED1_ON;
@@ -143,22 +146,28 @@ int main (void)
 		LED1_OFF;
 		LED2_OFF;
 		*/
+		strcpy(str, "a ");
 		
+		if(get_result(result_string))
+		{
+			strcat(str, "Pressure: ");
+			strcat(str, result_string);
+		}
 		
 		if(get_char(&tmpstr[0]))
 		{
-			strcpy(str,"received char: ");
-			strcat(str,tmpstr);
-			strcat(str,"\r\n");
-			usart_putstring(str);
+			strcpy(str, " received char: ");
+			strcat(str, tmpstr);
 		}
+		
+		strcat(str,"\r\n");
+		usart_putstring(str);
+		_delay_ms(100);
 		
 
 		PWM_TH = (PWM_TH + 1)%PWM_PERIOD;
 		set_pwm(PWM_TH);
 		
 	}
-	
-	
 	/* Insert application code here, after the board has been initialized. */
 }

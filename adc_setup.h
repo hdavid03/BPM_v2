@@ -10,6 +10,8 @@
 #define ADC_SETUP_H_
 
 #include <asf.h>
+#include <stdbool.h>
+#include <stdio.h>
 
 #define CONVMODE_SIGNED (1 << 4)
 #define CONVMODE_UNSIGNED (0 << 4)
@@ -33,10 +35,18 @@
 #define CONV_COMPLETE (0 << 2)
 #define COMP_BELOW (1 << 2)
 #define COMP_ABOVE (3 << 2)
+#define ADC_BUFFSIZE 64U
 
 void adc_setup(void);
+void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res);
+uint8_t get_result(char* res);
+fifo_desc_t adc_fifo_desc;
 
-
-
+union adc_buffer_element
+{
+	uint8_t  byte;
+	uint16_t halfword;
+	uint32_t word;
+};
 
 #endif /* ADC_SETUP_H_ */
