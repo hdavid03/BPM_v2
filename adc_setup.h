@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define My_ADC_Input (ADCCH_POS_PIN8 << ADC_CH_MUXPOS0_bp)
 #define CONVMODE_SIGNED (1 << 4)
 #define CONVMODE_UNSIGNED (0 << 4)
 #define DIV512 (7 << 0)
@@ -39,7 +40,7 @@
 
 void adc_setup(void);
 void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res);
-uint8_t get_result(char* res);
+uint8_t get_result(uint16_t* res);
 fifo_desc_t adc_fifo_desc;
 
 union adc_buffer_element

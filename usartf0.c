@@ -98,3 +98,13 @@ ISR(USARTF0_RXC_vect)
 		fifo_push_uint8(&rxfifo_desc, datin);
 	}
 }
+
+char bin_hex(char binb)
+{
+	char hex_chr;
+
+	binb&=0x0f;
+	if (binb<=0x09) hex_chr=binb+'0';
+	else            hex_chr=binb+'A'-10;
+	return(hex_chr);
+}

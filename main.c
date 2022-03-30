@@ -36,6 +36,7 @@
 #include <avr/delay.h>
 #include "usartf0.h"
 #include <string.h>
+#include <stdio.h>
 
 
 //LED1 E1
@@ -48,28 +49,22 @@
 #define LED1_ON LED1PORT.OUTSET = LED1bm;
 #define LED2_OFF LED2PORT.OUTCLR = LED2bm;
 #define LED2_ON LED2PORT.OUTSET = LED2bm;
-#define CONVMODE_SIGNED (1 << 4)
-#define CONVMODE_UNSIGNED (0 << 4)
-#define DIV512 (7 << 0)
-#define REF_INTVCC (1 << 4)
-#define FREERUN (1 << 3)
-#define NOT_FREERUN (0 << 3)
-#define RES_12BIT_RIGHT (0 << 1)
-#define RES_8BIT (2 << 1)
-#define RES_12BIT_LEFT (3 << 1)
-#define GAIN_1X (0 << 2)
-#define GAIN_2X (1 << 2)
-#define GAIN_4X (2 << 2)
-#define GAIN_8X (3 << 2)
-#define INTERNAL_INPUT (0 << 0)
-#define SINGLEENDED (1 << 0)
-#define TEMP_INPUT (0 << 3)
-#define BANDGAP_INPUT (1 << 3)
-#define SCALEDVCC_INPUT (2 << 3)
-#define DAC_INPUT (3 << 3)
-#define CONV_COMPLETE (0 << 2)
-#define COMP_BELOW (1 << 2)
-#define COMP_ABOVE (3 << 2)
+
+#define MOTORPORT PORTD
+#define MOTORbm 0b00000100
+#define MOTOR_ON MOTORPORT.OUTSET = MOTORbm
+#define MOTOR_OFF MOTORPORT.OUTCLR  = MOTORbm
+#define OFF 0
+#define ON 1
+
+uint8_t M = 0;
+
+//5V SW switch on the pressure sensor
+#define PSWbm 0b01000000
+#define PSWPORT PORTF
+#define PSW_ON PSWPORT.OUTSET = PSWbm
+#define PSW_OFF PSWPORT.OUTCLR = PSWbm
+
 #define OC0PORT PORTC
 #define OC0PINbm 0b00000100
 
@@ -83,8 +78,10 @@
 #define DSTOP 0x05
 #define WGMODE DSTOP
 #define PWM_PERIOD (30000-1) // T = PWMPERIOD*Tclk   (Tclk = 1/12MHz)
+#define pwm_max ((PWM_PERIOD + 1)/3 - 1)
+
 uint16_t PWM_TH = 0;    // THpwm = PWM_Time*Tclk
-#define set_pwm(pwm) {if(pwm > PWM_PERIOD) {pwm = PWM_PERIOD;} else {tc_write_cc(&TCC0, TC_CCC, pwm);}}
+#define set_pwm(x) {if(3*x > PWM_PERIOD) {tc_write_cc(&TCC0, TC_CCC, PWM_PERIOD);} else {tc_write_cc(&TCC0, TC_CCC, 3*x);}}  //0 <= pwm <=10000
 
 void TCC0_Setup(void);
 void TCC0_Setup(void)
@@ -98,9 +95,8 @@ void TCC0_Setup(void)
 	tc_enable_cc_channels(&TCC0,TC_CCCEN);
 	tc_write_clock_source(&TCC0, TC_CLKSEL_DIV4_gc);
 	OC0PORT.DIRSET = OC0PINbm;					//OC0PORT set as output
+	set_pwm(10000);
 }
-
-
 
 void setup(void);
 void setup(void)
@@ -111,10 +107,22 @@ void setup(void)
 	LED2PORT.DIRSET = LED2bm;
 	LED1_OFF;
 	LED2_OFF;	
+	PSWPORT.DIRSET = PSWbm;
+	PSW_ON;
+	MOTOR_OFF;
+	M = OFF;
+	MOTORPORT.DIRSET  = MOTORbm;
 	usartf0_init();
 	pmic_enable_level(PMIC_LVL_LOW);									//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
+	adc_setup();
+	adc_enable(&ADCA);
 	sei();																// global IT enable
 }
+
+#define divR 0.571
+#define code_to_V (float)(3.3/(divR*1.6*4095))
+#define V_to_kPa (float)(50/4.5)
+#define kPa_to_Hgmm 7.50062
 
 
 int main (void)
@@ -123,19 +131,28 @@ int main (void)
 	char tmpstr[2];
 	char result_string[8];
 	tmpstr[1] = 0;
-
+	static uint16_t offset, result, pwm, step, resHgmm;
+	static volatile float resfl, offsetfl, resflV;
+	pwm = 10000;
+	step = 100;
+	offset = 0;
 	setup();
-	adc_setup();
-	adc_enable(&ADCA);
 	
+	for (int i = 0; i < 8; i++)
+	{
+		do{}while(!get_result(&result));
+		offset += result;
+	}
+	
+	offset = offset/8;
+	offsetfl = (float)offset;
 	
 	while(1)
 	{
-		adc_start_conversion(&ADCA, ADC_CH0);
+		// adc_start_conversion(&ADCA, ADC_CH0);
 		// adc_wait_for_interrupt_flag(&ADCA, ADC_CH0);
 		
 		/* Insert system clock initialization code here (sysclk_init()). */
-		
 		// result = adc_get_result(&ADCA, ADC_CH0);
 		// sprintf(result_string, " %u", result);
 		/*
@@ -146,28 +163,118 @@ int main (void)
 		LED1_OFF;
 		LED2_OFF;
 		*/
-		strcpy(str, "a ");
-		
-		if(get_result(result_string))
-		{
-			strcat(str, "Pressure: ");
-			strcat(str, result_string);
-		}
-		
+/*
+// 		strcpy(str, "a ");
+// 		
+// 		if(get_result(result_string))
+// 		{
+// 			strcat(str, "Pressure: ");
+// 			strcat(str, result_string);
+// 		}
+// 		
+// 		if(get_char(&tmpstr[0]))
+// 		{
+// 			strcpy(str, " received char: ");
+// 			strcat(str, tmpstr);
+// 		}
+// 		
+// 		strcat(str,"\r\n");
+// 		usart_putstring(str);
+// 		//_delay_ms(100);
+// 		PWM_TH = (PWM_TH + 1)%PWM_PERIOD;
+// 		set_pwm(PWM_TH);
+*/
 		if(get_char(&tmpstr[0]))
 		{
-			strcpy(str, " received char: ");
-			strcat(str, tmpstr);
+			strcat(str,tmpstr);
+			strcat(str,"\r\n");
+			usart_putstring(str);
+			switch(tmpstr[0])
+			{
+				case 'm':
+				if(M == OFF)
+				{
+					MOTOR_ON;
+					M = ON;
+					usart_putstring("M: ON");
+				}
+				else
+				{
+					MOTOR_OFF;
+					M = OFF;
+					usart_putstring("M: OFF");
+				}
+				break;
+				case 'f':
+				if(pwm <= pwm_max)
+				{
+					pwm = pwm + step;
+					set_pwm(pwm);
+					sprintf(str, "pwm: %i \r\n", pwm);
+					usart_putstring(str);
+				}
+				break;
+				case 'v':
+				if(pwm >= step)
+				{
+					pwm = pwm - step;
+					set_pwm(pwm);
+					sprintf(str, "pwm: %i \r\n", pwm);
+					usart_putstring(str);
+				}
+				break;
+				case 'q':
+				MOTOR_OFF;
+				set_pwm(0);
+				usart_putstring("All OFF!");
+				break;
+				default:
+				usart_putstring("Command error!");
+				break;
+			}
 		}
-		
-		strcat(str,"\r\n");
-		usart_putstring(str);
-		_delay_ms(100);
-		
+		else
+		{
+			do{}while(!get_result(&result));
+			
+			sprintf(str, "%i code ", result);
+			usart_putstring(str);
+			
+			result = result-offset;
+			if(result < 0) result = 0;
+			resfl = (float)result;
+			
+			resflV = code_to_V*(resfl + offsetfl);
+			sprintf(str, "%.2f V ", resflV);  //to use sprintf float: include stdio.h, project/properties/AVR/GNU Linker/General:check use vprintf,
+			//""   Miscellaneous/Other Linker Flags: -lprintf_flt
+			usart_putstring(str);
 
-		PWM_TH = (PWM_TH + 1)%PWM_PERIOD;
-		set_pwm(PWM_TH);
-		
+			resfl = code_to_V*(resfl);
+			sprintf(str, "%.2f V-Voff ", resfl);
+			usart_putstring(str);
+			
+			resfl = V_to_kPa*resfl;
+			sprintf(str, "%.2f kPa ", resfl);
+			usart_putstring(str);
+			
+			resfl = kPa_to_Hgmm*resfl;
+			sprintf(str, "%.2f Hgmmfl ", resfl);
+			usart_putstring(str);
+			
+			resHgmm = (int16_t)(resfl + 0.5);
+			
+			sprintf(str, "%i Hgmm ", resHgmm);
+			usart_putstring(str);
+			sprintf(str, "%i pwm\r\n", pwm);
+			usart_putstring(str);
+			
+			if(resHgmm >=240)
+			{
+				MOTOR_OFF;
+				M = OFF;
+				usart_putstring("M: OFF, over pressure!");
+			}
+		}
 	}
 	/* Insert application code here, after the board has been initialized. */
 }

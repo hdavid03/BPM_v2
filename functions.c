@@ -6,8 +6,9 @@
  */ 
 #include "functions.h"
 
-
+/*
 char convert_result(uint16_t result)
 {
 	
 }
+*/

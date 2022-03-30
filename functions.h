@@ -10,7 +10,7 @@
 #define FUNCTIONS_H_
 #include <stdint.h>
 
-char convert_result(uint16_t);
+// char convert_result(uint16_t);
 
 
 

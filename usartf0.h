@@ -31,6 +31,6 @@ fifo_desc_t rxfifo_desc, txfifo_desc;
 void usartf0_init(void);
 void usart_putstring(const char str[]);
 uint8_t get_char(char *chr);
-
+char bin_hex(char binb);
 
 #endif /* USARTF0_H_ */
