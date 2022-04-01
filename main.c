@@ -144,7 +144,7 @@ int main (void)
 		offset += result;
 	}
 	
-	offset = offset/8;
+	offset = offset / 8;
 	offsetfl = (float)offset;
 	
 	while(1)
@@ -268,7 +268,7 @@ int main (void)
 			sprintf(str, "%i pwm\r\n", pwm);
 			usart_putstring(str);
 			
-			if(resHgmm >=240)
+			if(resHgmm >= 240)
 			{
 				MOTOR_OFF;
 				M = OFF;

@@ -25,8 +25,6 @@ static struct adc_channel_config ch_conf =
 	.intctrl = CH_INTCTRL
 };
 
-// static volatile uint16_t result;
-// static volatile Bool valid_result;
 union adc_buffer_element adc_buffer[ADC_BUFFSIZE];
 
 void adc_setup()

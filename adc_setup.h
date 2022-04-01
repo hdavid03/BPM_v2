@@ -36,7 +36,7 @@
 #define CONV_COMPLETE (0 << 2)
 #define COMP_BELOW (1 << 2)
 #define COMP_ABOVE (3 << 2)
-#define ADC_BUFFSIZE 64U
+#define ADC_BUFFSIZE 32U
 
 void adc_setup(void);
 void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res);
