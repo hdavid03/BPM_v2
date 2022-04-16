@@ -38,14 +38,6 @@ function control[CALC + 1];
 
 int main (void)
 {
-	char str[48];
-	char tmpstr[2];
-	tmpstr[1] = 0;
-	// static uint16_t offset, result, pwm, step, resHgmm;
-	// static volatile float resfl, offsetfl, resflV;
-	// pwm = 10000;
-	// step = 100;
-	// offset = 0;
 	init_fsm(control);
 	state st = INIT;
 	while(1)

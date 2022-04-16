@@ -12,8 +12,6 @@
 #include <string.h>
 #include <stdio.h>
 
-static function control[CALC + 1];
-
 void init_fsm(function* control)
 {
 	control[INIT] = init_bpm;
@@ -41,7 +39,6 @@ state init_bpm()
 	usartf0_init();
 	pmic_enable_level(PMIC_LVL_LOW);									//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
 	adc_setup();
-	adc_enable(&ADCA);
 	sei();
 	return IDLE;
 }
@@ -57,18 +54,19 @@ state dc_on()
 {
 	set_pwm(10000);
 	MOTOR_ON;
+	LED2_ON;
+	adc_enable(&ADCA);
 	return PUMP;
 }
 
 state check_pressure()
 {
-	uint16_t result;
-	do{}while(!get_result(&result));
-	uint16_t resHgmm = (uint16_t)(code_to_Hgmm * result + 0.5);
+	float_byteblock resHgmm;
+	complete_conversion(&resHgmm);
 	char str[16] = "";
-	sprintf(str, "P: %u\n", resHgmm);
+	sprintf(str, "%f\r\n", resHgmm.value);
 	usart_putstring(str);
-	if(resHgmm >= 230)
+	if(resHgmm.value >= 230.0f)
 		return DC_OFF;
 	return PUMP;
 }
@@ -76,21 +74,25 @@ state check_pressure()
 state dc_off()
 {
 	MOTOR_OFF;
-	set_pwm(9000);
+	LED2_OFF;
+	LED1_ON;
+	set_pwm(8500);
 	return CALC;
 }
 
 state calculation()
 {
-	uint16_t result;
-	do{}while(!get_result(&result));
-	uint16_t resHgmm = (uint16_t)(code_to_Hgmm * result + 0.5);
+	float_byteblock resHgmm;
+	complete_conversion(&resHgmm);
 	char str[16] = "";
-	sprintf(str, "P: %u\n", resHgmm);
+	sprintf(str, "%f\r\n", resHgmm.value);
 	usart_putstring(str);
-	if(resHgmm <= 45)
+	if(resHgmm.value <= 45.0f)
 	{
 		set_pwm(0);
+		LED1_OFF;
+		adc_disable(&ADCA);
+		usart_putstring("XXXX");
 		return IDLE;
 	}
 	return CALC;

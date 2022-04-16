@@ -102,7 +102,6 @@ ISR(USARTF0_RXC_vect)
 char bin_hex(char binb)
 {
 	char hex_chr;
-
 	binb &= 0x0f;
 	if (binb <= 0x09)
 		hex_chr = binb + '0';

@@ -39,12 +39,14 @@ void adc_setup()
 	fifo_init(&adc_fifo_desc, adc_buffer, ADC_BUFFSIZE);
 }
 
-uint8_t get_result(uint16_t* res)
+uint8_t get_result(float* result)
 {
 	uint8_t retval = 0;
+	uint16_t conv_result = 0;
 	if(!fifo_is_empty(&adc_fifo_desc))
 	{
-		*res = fifo_pull_uint16_nocheck(&adc_fifo_desc);
+		conv_result = fifo_pull_uint16_nocheck(&adc_fifo_desc);
+		*result = convert_result_to_Hgmm(conv_result);
 		retval = 1;
 	}
 	return retval;
@@ -57,4 +59,5 @@ void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res)
 		fifo_push_uint16_nocheck(&adc_fifo_desc, res);
 	}
 }
+
 

@@ -37,11 +37,9 @@
 #define COMP_BELOW (1 << 2)
 #define COMP_ABOVE (3 << 2)
 #define ADC_BUFFSIZE 32U
-
-void adc_setup(void);
-void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res);
-uint8_t get_result(uint16_t* res);
-fifo_desc_t adc_fifo_desc;
+#define divR 0.571
+#define code_to_V (float)(3.3 / (divR * 1.6 * 4095))
+#define V_to_Hgmm (float)(50 / 4.5 * 7.50062)
 
 union adc_buffer_element
 {
@@ -49,5 +47,18 @@ union adc_buffer_element
 	uint16_t halfword;
 	uint32_t word;
 };
+
+typedef union
+{
+	float value;
+	char bytes[sizeof(float)];
+} float_byteblock;
+
+void adc_setup(void);
+void adc_read_result(ADC_t*, uint8_t, adc_result_t);
+uint8_t get_result(float*);
+static inline float convert_result_to_Hgmm(float x) { return x * code_to_V * V_to_Hgmm; }
+static inline void complete_conversion(float_byteblock* byteblock) { do {} while(!get_result(&byteblock->value)); }
+fifo_desc_t adc_fifo_desc;
 
 #endif /* ADC_SETUP_H_ */
