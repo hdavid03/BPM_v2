@@ -55,7 +55,7 @@ uint8_t get_char(char *chr)
 		*chr = fifo_pull_uint8_nocheck(&rxfifo_desc);
 		retval = 1;
 	}
-	return(retval);
+	return retval;
 }
 
 void usart_putstring(const char str[])
@@ -103,8 +103,10 @@ char bin_hex(char binb)
 {
 	char hex_chr;
 
-	binb&=0x0f;
-	if (binb<=0x09) hex_chr=binb+'0';
-	else            hex_chr=binb+'A'-10;
-	return(hex_chr);
+	binb &= 0x0f;
+	if (binb <= 0x09)
+		hex_chr = binb + '0';
+	else
+		hex_chr = binb + 'A' - 10;
+	return hex_chr;
 }

@@ -47,16 +47,7 @@ uint8_t get_result(uint16_t* res)
 		*res = fifo_pull_uint16_nocheck(&adc_fifo_desc);
 		retval = 1;
 	}
-	return(retval);
-	/*
-	if(valid_result)
-	{
-		sprintf(res, "%u", result);
-		valid_result = false;
-		return true;
-	}
-	return false;
-	*/
+	return retval;
 }
 
 void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res)
@@ -65,9 +56,5 @@ void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res)
 	{
 		fifo_push_uint16_nocheck(&adc_fifo_desc, res);
 	}
-	/*
-	result = res;
-	valid_result = true;
-	*/
 }
 
