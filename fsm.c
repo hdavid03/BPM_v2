@@ -63,9 +63,7 @@ state check_pressure()
 {
 	float_byteblock resHgmm;
 	complete_conversion(&resHgmm);
-	char str[16] = "";
-	sprintf(str, "%f\r\n", resHgmm.value);
-	usart_putstring(str);
+	usart_putbytes(resHgmm.bytes, sizeof(float));
 	if(resHgmm.value >= 230.0f)
 		return DC_OFF;
 	return PUMP;
@@ -76,7 +74,7 @@ state dc_off()
 	MOTOR_OFF;
 	LED2_OFF;
 	LED1_ON;
-	set_pwm(8500);
+	set_pwm(9000);
 	return CALC;
 }
 
@@ -84,10 +82,8 @@ state calculation()
 {
 	float_byteblock resHgmm;
 	complete_conversion(&resHgmm);
-	char str[16] = "";
-	sprintf(str, "%f\r\n", resHgmm.value);
-	usart_putstring(str);
-	if(resHgmm.value <= 45.0f)
+	usart_putbytes(resHgmm.bytes, sizeof(float));
+	if(resHgmm.value <= 55.0f)
 	{
 		set_pwm(0);
 		LED1_OFF;

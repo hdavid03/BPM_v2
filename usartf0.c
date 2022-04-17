@@ -75,6 +75,23 @@ void usart_putstring(const char str[])
 	usart_set_dre_interrupt_level(USART_SERIAL, USART_INT_LVL);
 }
 
+void usart_putbytes(const char bytes[], uint8_t size)
+{
+	while(!fifo_is_empty(&txfifo_desc)){}
+	for(uint8_t i = 0; i < size; i++)
+	{
+		if(!fifo_is_full(&txfifo_desc))
+		{
+			fifo_push_uint8(&txfifo_desc, bytes[i]);
+		}
+		else
+		{
+			break;
+		}
+	}
+	usart_set_dre_interrupt_level(USART_SERIAL, USART_INT_LVL);
+}
+
 //USART0 transmit IT (data register empty)
 ISR(USARTF0_DRE_vect)
 {

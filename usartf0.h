@@ -30,6 +30,7 @@ fifo_desc_t rxfifo_desc, txfifo_desc;
 
 void usartf0_init(void);
 void usart_putstring(const char str[]);
+void usart_putbytes(const char bytes[], uint8_t size);
 uint8_t get_char(char *chr);
 char bin_hex(char binb);
 
