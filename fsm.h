@@ -11,11 +11,6 @@
 
 #include "define_ports.h"
 
-#define divR 0.571
-#define code_to_V (float)(3.3 / (divR * 1.6 * 4095))
-#define V_to_Hgmm (float)(50 / 4.5 * 7.50062)
-#define code_to_Hgmm code_to_V * V_to_Hgmm
-
 typedef enum { INIT, IDLE, DC_ON, PUMP, DC_OFF, CALC } state;
 typedef state (*function)(void);
 

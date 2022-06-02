@@ -29,7 +29,6 @@
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
-//#define F_CPU 12000000
 #include "fsm.h"
 #include <string.h>
 #include <stdio.h>
@@ -44,5 +43,4 @@ int main (void)
 	{
 		st = control[st]();
 	}
-	/* Insert application code here, after the board has been initialized. */
 }

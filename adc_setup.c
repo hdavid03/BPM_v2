@@ -12,7 +12,6 @@
 static struct adc_config conf = 
 {
 	.ctrla = CTRLA,
-	//.ctrlb = ADC_RESOLUTION_12BIT_gc,
 	.ctrlb = ADC_RESOLUTION_12BIT_gc | ADC_FREERUN_bm,
 	.refctrl = ADC_REFSEL_INTVCC_gc,
 	.prescaler = ADC_PRESCALER_DIV512_gc

@@ -14,12 +14,12 @@
 
 void init_fsm(function* control)
 {
-	control[INIT] = init_bpm;
-	control[IDLE] = check_button;
-	control[DC_ON] = dc_on;
-	control[PUMP] = check_pressure;
-	control[DC_OFF] = dc_off;
-	control[CALC] = calculation;
+	control[INIT]	= init_bpm;
+	control[IDLE]	= check_button;
+	control[DC_ON]	= dc_on;
+	control[PUMP]	= check_pressure;
+	control[DC_OFF]	= dc_off;
+	control[CALC]	= calculation;
 }
 
 state init_bpm()
@@ -64,7 +64,7 @@ state check_pressure()
 	float_byteblock resHgmm;
 	complete_conversion(&resHgmm);
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value >= 230.0f)
+	if(resHgmm.value >= 220.0f)
 		return DC_OFF;
 	return PUMP;
 }
@@ -74,7 +74,6 @@ state dc_off()
 	MOTOR_OFF;
 	LED2_OFF;
 	LED1_ON;
-	set_pwm(9000);
 	return CALC;
 }
 
@@ -83,7 +82,7 @@ state calculation()
 	float_byteblock resHgmm;
 	complete_conversion(&resHgmm);
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value <= 55.0f)
+	if(resHgmm.value <= 50.0f)
 	{
 		set_pwm(0);
 		LED1_OFF;
