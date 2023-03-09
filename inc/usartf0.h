@@ -26,8 +26,6 @@
 #define rxbuf_size 16
 #define txbuf_size 32
 
-fifo_desc_t rxfifo_desc, txfifo_desc;
-
 void usartf0_init(void);
 void usart_putstring(const char str[]);
 void usart_putbytes(const char bytes[], uint8_t size);

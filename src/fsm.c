@@ -22,7 +22,7 @@ void init_fsm(function* control)
 	control[CALC]	= calculation;
 }
 
-state init_bpm()
+state init_bpm(void)
 {
 	setup_48MHz_12MHz_clock();
 	TCC0_setup();
@@ -43,14 +43,14 @@ state init_bpm()
 	return IDLE;
 }
 
-state check_button()
+state check_button(void)
 {
 	if(BTNCHECK)
 		return DC_ON;
 	return IDLE;
 }
 
-state dc_on()
+state dc_on(void)
 {
 	set_pwm(10000);
 	MOTOR_ON;
@@ -59,7 +59,7 @@ state dc_on()
 	return PUMP;
 }
 
-state check_pressure()
+state check_pressure(void)
 {
 	float_byteblock resHgmm;
 	complete_conversion(&resHgmm);
@@ -69,7 +69,7 @@ state check_pressure()
 	return PUMP;
 }
 
-state dc_off()
+state dc_off(void)
 {
 	MOTOR_OFF;
 	LED2_OFF;
@@ -77,7 +77,7 @@ state dc_off()
 	return CALC;
 }
 
-state calculation()
+state calculation(void)
 {
 	float_byteblock resHgmm;
 	complete_conversion(&resHgmm);

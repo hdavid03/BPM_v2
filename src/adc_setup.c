@@ -9,6 +9,8 @@
 #define CH_CTRL (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc)
 #define CH_INTCTRL (ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc)
 
+fifo_desc_t adc_fifo_desc;
+
 static struct adc_config conf = 
 {
 	.ctrla = CTRLA,
@@ -26,7 +28,7 @@ static struct adc_channel_config ch_conf =
 
 union adc_buffer_element adc_buffer[ADC_BUFFSIZE];
 
-void adc_setup()
+void adc_setup(void)
 {
 	// disable adc before writing the configuration
 	adc_disable(&ADCA);

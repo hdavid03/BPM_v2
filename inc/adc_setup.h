@@ -59,6 +59,5 @@ void adc_read_result(ADC_t*, uint8_t, adc_result_t);
 uint8_t get_result(float*);
 static inline float convert_result_to_Hgmm(float x) { return (x * code_to_V / 5 - 0.04) / 0.018 * 7.50062; }
 static inline void complete_conversion(float_byteblock* byteblock) { do {} while(!get_result(&byteblock->value)); }
-fifo_desc_t adc_fifo_desc;
 
 #endif /* ADC_SETUP_H_ */

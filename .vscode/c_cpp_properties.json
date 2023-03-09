@@ -1,0 +1,52 @@
+{
+    "configurations": [
+        {
+            "name": "AVR",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/avr/include/"
+            ],
+            "defines": ["__AVR_ATxmega128A3U__",
+                        "F_CPU=16000000UL",
+                        "BOARD=STK600_RC064X",
+                        "IOPORT_XMEGA_COMPAT",
+                        "XMEGA_AU",
+                        "XMEGA_A3U",
+                        "XMEGA"],
+            "compilerPath": "/usr/bin/avr-gcc",
+            "cStandard": "gnu99",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "gcc-arm",
+            "configurationProvider": "ms-vscode.makefile-tools",
+            "browse": {
+                "path": ["${workspaceFolder}/lib/ASF/common/boards",
+                         "${workspaceFolder}/lib/ASF/common/services/clock",
+                         "${workspaceFolder}/lib/ASF/common/services/fifo",
+                         "${workspaceFolder}/lib/ASF/common/services/gpio",
+                         "${workspaceFolder}/lib/ASF/common/services/ioport",
+                         "${workspaceFolder}/lib/ASF/common/services/ioport/xmega",
+                         "${workspaceFolder}/lib/ASF/common/services/serial",
+                         "${workspaceFolder}/lib/ASF/common/services/sleepmgr",
+                         "${workspaceFolder}/lib/ASF/common/utils",
+                         "${workspaceFolder}/lib/ASF/xmega/boards/stk600/rc064x",
+                         "${workspaceFolder}/lib/ASF/xmega/drivers/adc",
+                         "${workspaceFolder}/lib/ASF/xmega/drivers/cpu",
+                         "${workspaceFolder}/lib/ASF/xmega/drivers/nvm",
+                         "${workspaceFolder}/lib/ASF/xmega/drivers/pmic",
+                         "${workspaceFolder}/lib/ASF/xmega/drivers/sleep",
+                         "${workspaceFolder}/lib/ASF/xmega/drivers/tc",
+                         "${workspaceFolder}/lib/ASF/xmega/drivers/usart",
+                         "${workspaceFolder}/lib/ASF/xmega/services/pwm",
+                         "${workspaceFolder}/lib/ASF/xmega/utils",
+                         "${workspaceFolder}/lib/ASF/xmega/utils/assembler",
+                         "${workspaceFolder}/lib/ASF/xmega/utils/bit_handling",
+                         "${workspaceFolder}/lib/ASF/xmega/utils/preprocessor",
+                         "${workspaceFolder}/lib/config",
+                         "/usr/avr/include/"],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}

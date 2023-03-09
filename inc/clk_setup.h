@@ -9,8 +9,6 @@
 #ifndef CLK_SETUP_H_
 #define CLK_SETUP_H_
 
-#define F_CPU 12000000
-
 // External oscillator frequency range
 #define CONFIG_XOSC_RANGE XOSC_RANGE_12TO16
 

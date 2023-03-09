@@ -40,7 +40,7 @@
  * \asf_license_stop
  *
  */
-#include <assembler.h>
+#include "assembler.h"
 
 #if defined(__GNUC__)
 //! Value to write to CCP for access to protected IO registers.

@@ -1,6 +1,8 @@
-Debug/
-*.componentinfo
-BPM_v2
+out/
 *.xml
+*.elf
+*.hex
+*.lst
 *.o
-*.cproj
+.vscode/settings.json
+

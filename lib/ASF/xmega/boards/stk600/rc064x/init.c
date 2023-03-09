@@ -40,6 +40,8 @@
 #include "stk600_rc064x.h"
 #include "conf_board.h"
 #include "ioport.h"
+#include "xmega/ioport.h"
+#include "xmega/ioport_compat.h"
 
 void board_init(void)
 {
