@@ -4,13 +4,12 @@
  * Created: 4/15/2022 5:33:02 PM
  *  Author: Hajdu Dávid
  */ 
+#include <string.h>
 #include "fsm.h"
 #include "clk_setup.h"
 #include "adc_setup.h"
 #include "pwm_setup.h"
 #include "usartf0.h"
-#include <string.h>
-#include <stdio.h>
 
 void init_fsm(function* control)
 {

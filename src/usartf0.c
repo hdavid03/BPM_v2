@@ -1,6 +1,21 @@
 #include "usartf0.h"
 #include <string.h>
 
+#define USART_INT_LVL USART_INT_LVL_LO
+
+#define UART0PORT PORTF
+#define UARTF0_TXbm 0b00001000
+#define UARTF0_RXbm 0b00000100
+
+#define USART_SERIAL                     &USARTF0
+#define USART_SERIAL_BAUDRATE            19200
+#define USART_SERIAL_CHAR_LENGTH         USART_CHSIZE_8BIT_gc
+#define USART_SERIAL_PARITY              USART_PMODE_DISABLED_gc
+#define USART_SERIAL_STOP_BIT            false
+
+#define RX_BUFF_SIZE 16
+#define TX_BUFF_SIZE 32
+
 fifo_desc_t rxfifo_desc, txfifo_desc;
 
 static usart_serial_options_t usart_options = {
@@ -17,8 +32,7 @@ union rxbuffer_element {
 	uint32_t word;
 };
 
-union rxbuffer_element fifo_rxbuf[rxbuf_size];
-//fifo_desc_t rxfifo_desc;
+union rxbuffer_element fifo_rxbuf[RX_BUFF_SIZE];
 
 union txbuffer_element {
 	uint8_t  byte;
@@ -26,8 +40,7 @@ union txbuffer_element {
 	uint32_t word;
 };
 
-union txbuffer_element fifo_txbuf[txbuf_size];
-//fifo_desc_t txfifo_desc;
+union txbuffer_element fifo_txbuf[TX_BUFF_SIZE];
 
 void usartf0_init(void)
 {
@@ -44,8 +57,8 @@ void usartf0_init(void)
 	usart_set_rx_interrupt_level(USART_SERIAL, USART_INT_LVL);		//rx IT level LO
 	usart_set_dre_interrupt_level(USART_SERIAL, USART_INT_LVL_OFF);		//tx IT disable
 	
-	fifo_init(&rxfifo_desc, fifo_rxbuf, rxbuf_size);					//Initialize the rx FIFO
-	fifo_init(&txfifo_desc, fifo_txbuf, txbuf_size);					//Initialize the tx FIFO
+	fifo_init(&rxfifo_desc, fifo_rxbuf, RX_BUFF_SIZE);					//Initialize the rx FIFO
+	fifo_init(&txfifo_desc, fifo_txbuf, TX_BUFF_SIZE);					//Initialize the tx FIFO
 	transmit_stop = 1;	
 }
 

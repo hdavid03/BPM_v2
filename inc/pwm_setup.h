@@ -28,5 +28,4 @@
 
 void TCC0_setup(void);
 
-
 #endif /* PWM_SETUP_H_ */

@@ -5,7 +5,10 @@
  *  Author: Hajdu Dávid
  */ 
 #include "adc_setup.h"
+#define My_ADC_Input (ADCCH_POS_PIN8 << ADC_CH_MUXPOS0_bp)
+#define ADC_BUFFSIZE 32U
 #define CTRLA (ADC_DMASEL_OFF_gc | ADC_FLUSH_bm | ADC_ENABLE_bm)
+#define CTRLB (ADC_RESOLUTION_12BIT_gc | ADC_FREERUN_bm)
 #define CH_CTRL (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc)
 #define CH_INTCTRL (ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc)
 
@@ -14,7 +17,7 @@ fifo_desc_t adc_fifo_desc;
 static struct adc_config conf = 
 {
 	.ctrla = CTRLA,
-	.ctrlb = ADC_RESOLUTION_12BIT_gc | ADC_FREERUN_bm,
+	.ctrlb = CTRLB,
 	.refctrl = ADC_REFSEL_INTVCC_gc,
 	.prescaler = ADC_PRESCALER_DIV512_gc
 };

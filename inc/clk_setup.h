@@ -9,16 +9,7 @@
 #ifndef CLK_SETUP_H_
 #define CLK_SETUP_H_
 
-// External oscillator frequency range
-#define CONFIG_XOSC_RANGE XOSC_RANGE_12TO16
-
-// USB clock
-#define CONFIG_USBCLK_SOURCE                USBCLK_SRC_PLL
-
-// CPU clock, 16MHz*3/(2*2) = 12 MHz
-//#define CONFIG_SYSCLK_SOURCE				SYSCLK_SRC_XOSC
-#define CONFIG_SYSCLK_PSADIV				SYSCLK_PSADIV_2
-#define CONFIG_SYSCLK_PSBCDIV				SYSCLK_PSBCDIV_1_2
+#define PLL_ID 0U
 
 void setup_48MHz_12MHz_clock(void);
 

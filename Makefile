@@ -4,18 +4,18 @@ OBJCOPY = avr-objcopy
 SIZE = avr-size
 NM = avr-nm
 AVRDUDE = avrdude
-REMOVE = rm -f
+REMOVE = rm -Rf
 
 #Main application file name
 TARGET = main
 
 #MCU specification
 MCU = atxmega128a3u
-F_CPU = 12000000UL
+F_CPU = 16000000UL
 
 #Options for avr-gcc
 OPTLEVEL = s
-CDEFS := -DF_CPU=16000000UL
+CDEFS := -DF_CPU=$(F_CPU)
 CDEFS += -DBOARD=STK600_RC064X
 CFLAGS = $(CDEFS)
 CFLAGS += -O$(OPTLEVEL)
@@ -98,8 +98,8 @@ analyze: $(TARGET).elf
 
 clean:
 	@echo $(MSG_CLEAN)
-	@rm -Rf $(OUTDIR)
-	@rm -f $(TARGET).hex $(TARGET).elf
+	@$(REMOVE) $(OUTDIR)
+	@$(REMOVE) $(TARGET).hex $(TARGET).elf
 
 show:
 	@echo Project name: $(TARGET)

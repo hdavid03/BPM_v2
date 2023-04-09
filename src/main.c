@@ -30,8 +30,6 @@
  */
 
 #include "fsm.h"
-#include <string.h>
-#include <stdio.h>
 
 function control[CALC + 1];
 
