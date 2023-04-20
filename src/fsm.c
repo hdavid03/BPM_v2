@@ -24,19 +24,19 @@ void init_fsm(function* control)
 state init_bpm(void)
 {
 	setup_48MHz_12MHz_clock();
-	TCC0_setup();
 	LED1PORT.DIRSET = LED1bm;	//set output
 	LED2PORT.DIRSET = LED2bm;
+	MOTORPORT.DIRSET  = MOTORbm;
+	PSWPORT.DIRSET = PSWbm;
+	VALVEPORT.DIRSET = VALVEPINbm;
 	LED1_OFF;
 	LED2_OFF;
-	PSWPORT.DIRSET = PSWbm;
 	PSW_ON;
 	MOTOR_OFF;
-	MOTORPORT.DIRSET  = MOTORbm;
 	PUSHBTN.DIRCLR = PUSHBTNbm;
 	INVERT_BTN_INPUT;
 	usartf0_init();
-	pmic_enable_level(PMIC_LVL_LOW);									//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
+	pmic_enable_level(PMIC_LVL_LOW);	//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
 	adc_setup();
 	sei();
 	return IDLE;
@@ -51,7 +51,7 @@ state check_button(void)
 
 state dc_on(void)
 {
-	set_pwm(10000);
+	VALVE_ON;
 	MOTOR_ON;
 	LED2_ON;
 	adc_enable(&ADCA);
@@ -83,10 +83,11 @@ state calculation(void)
 	usart_putbytes(resHgmm.bytes, sizeof(float));
 	if(resHgmm.value <= 50.0f)
 	{
-		set_pwm(0);
+		VALVE_OFF;
 		LED1_OFF;
 		adc_disable(&ADCA);
 		usart_putstring("XXXX");
+		PSW_OFF;
 		return IDLE;
 	}
 	return CALC;

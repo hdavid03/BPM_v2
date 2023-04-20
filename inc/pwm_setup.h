@@ -24,7 +24,8 @@
 #define PWM_PERIOD (30000-1) // T = PWMPERIOD*Tclk   (Tclk = 1/12MHz)
 #define pwm_max ((PWM_PERIOD + 1)/3 - 1)
 
-#define set_pwm(x) {if(3*x > PWM_PERIOD) {tc_write_cc(&TCC0, TC_CCC, PWM_PERIOD);} else {tc_write_cc(&TCC0, TC_CCC, 3*x);}}  //0 <= pwm <=10000
+#define set_pwm(x) {if(3*x > PWM_PERIOD) {tc_write_cc(&TCC0, TC_CCC, PWM_PERIOD);} \
+                    else {tc_write_cc(&TCC0, TC_CCC, 3*x);}}  //0 <= pwm <=10000
 
 void TCC0_setup(void);
 
