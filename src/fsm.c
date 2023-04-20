@@ -10,6 +10,7 @@
 #include "adc_setup.h"
 #include "pwm_setup.h"
 #include "usartf0.h"
+#include <util/delay.h>
 
 void init_fsm(function* control)
 {
@@ -31,6 +32,7 @@ state init_bpm(void)
 	VALVEPORT.DIRSET = VALVEPINbm;
 	LED1_OFF;
 	LED2_OFF;
+	VALVE_OFF;
 	PSW_ON;
 	MOTOR_OFF;
 	PUSHBTN.DIRCLR = PUSHBTNbm;
@@ -38,6 +40,11 @@ state init_bpm(void)
 	usartf0_init();
 	pmic_enable_level(PMIC_LVL_LOW);	//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
 	adc_setup();
+	LED1_ON;
+	LED2_ON;
+	_delay_ms(1000);
+	LED1_OFF;
+	LED2_OFF;
 	sei();
 	return IDLE;
 }
@@ -63,7 +70,7 @@ state check_pressure(void)
 	float_byteblock resHgmm;
 	complete_conversion(&resHgmm);
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value >= 220.0f)
+	if(resHgmm.value >= 100.0f)
 		return DC_OFF;
 	return PUMP;
 }
@@ -83,10 +90,10 @@ state calculation(void)
 	usart_putbytes(resHgmm.bytes, sizeof(float));
 	if(resHgmm.value <= 50.0f)
 	{
-		VALVE_OFF;
-		LED1_OFF;
 		adc_disable(&ADCA);
 		usart_putstring("XXXX");
+		VALVE_OFF;
+		LED1_OFF;
 		PSW_OFF;
 		return IDLE;
 	}

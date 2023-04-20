@@ -34,7 +34,7 @@ union adc_buffer_element adc_buffer[ADC_BUFFSIZE];
 void adc_setup(void)
 {
 	// disable adc before writing the configuration
-	adc_disable(&ADCA);
+	//adc_disable(&ADCA);
 	
 	// write configuration in to registers
 	adc_write_configuration(&ADCA, &conf);

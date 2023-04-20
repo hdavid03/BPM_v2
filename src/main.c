@@ -30,6 +30,8 @@
  */
 
 #include "fsm.h"
+#include "clk_setup.h"
+#include <util/delay.h>
 
 function control[CALC + 1];
 
