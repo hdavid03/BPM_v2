@@ -4,13 +4,41 @@
  * Created: 4/15/2022 5:33:02 PM
  *  Author: Hajdu Dávid
  */ 
+#include <util/delay.h>
 #include <string.h>
 #include "fsm.h"
 #include "clk_setup.h"
 #include "adc_setup.h"
 #include "pwm_setup.h"
 #include "usartf0.h"
-#include <util/delay.h>
+
+static void status_ok_led(void);
+static void init_ports(void);
+
+static void status_ok_led(void)
+{
+	LED1_ON;
+	LED2_ON;
+	_delay_ms(1000);
+	LED1_OFF;
+	LED2_OFF;
+}
+
+static void init_ports(void)
+{
+	LED1PORT.DIRSET = LED1bm;	//set output
+	LED2PORT.DIRSET = LED2bm;
+	MOTORPORT.DIRSET  = MOTORbm;
+	PSWPORT.DIRSET = PSWbm;
+	VALVEPORT.DIRSET = VALVEPINbm;
+	PUSHBTN.DIRCLR = PUSHBTNbm;
+	INVERT_BTN_INPUT;
+	LED1_OFF;
+	LED2_OFF;
+	VALVE_OFF;
+	PSW_ON;
+	MOTOR_OFF;
+}
 
 void init_fsm(function* control)
 {
@@ -25,26 +53,11 @@ void init_fsm(function* control)
 state init_bpm(void)
 {
 	setup_48MHz_12MHz_clock();
-	LED1PORT.DIRSET = LED1bm;	//set output
-	LED2PORT.DIRSET = LED2bm;
-	MOTORPORT.DIRSET  = MOTORbm;
-	PSWPORT.DIRSET = PSWbm;
-	VALVEPORT.DIRSET = VALVEPINbm;
-	LED1_OFF;
-	LED2_OFF;
-	VALVE_OFF;
-	PSW_ON;
-	MOTOR_OFF;
-	PUSHBTN.DIRCLR = PUSHBTNbm;
-	INVERT_BTN_INPUT;
+	init_ports();
 	usartf0_init();
 	pmic_enable_level(PMIC_LVL_LOW);	//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
 	adc_setup();
-	LED1_ON;
-	LED2_ON;
-	_delay_ms(1000);
-	LED1_OFF;
-	LED2_OFF;
+	status_ok_led();
 	sei();
 	return IDLE;
 }
@@ -68,7 +81,7 @@ state dc_on(void)
 state check_pressure(void)
 {
 	float_byteblock resHgmm;
-	complete_conversion(&resHgmm);
+	complete_conversion(&(resHgmm.value));
 	usart_putbytes(resHgmm.bytes, sizeof(float));
 	if(resHgmm.value >= 100.0f)
 		return DC_OFF;
@@ -86,12 +99,12 @@ state dc_off(void)
 state calculation(void)
 {
 	float_byteblock resHgmm;
-	complete_conversion(&resHgmm);
+	complete_conversion(&(resHgmm.value));
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value <= 50.0f)
+	if(resHgmm.value <= 40.0f)
 	{
-		adc_disable(&ADCA);
 		usart_putstring("XXXX");
+		adc_disable(&ADCA);
 		VALVE_OFF;
 		LED1_OFF;
 		PSW_OFF;

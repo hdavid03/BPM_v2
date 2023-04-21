@@ -50,7 +50,7 @@ uint8_t get_result(float* result)
 	if(!fifo_is_empty(&adc_fifo_desc))
 	{
 		conv_result = fifo_pull_uint16_nocheck(&adc_fifo_desc);
-		*result = convert_result_to_Hgmm(conv_result);
+		*result = convert_result_to_Hgmm((float)conv_result);
 		retval = 1;
 	}
 	return retval;
@@ -60,7 +60,7 @@ void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res)
 {
 	if(!fifo_is_full(&adc_fifo_desc))
 	{
-		fifo_push_uint16_nocheck(&adc_fifo_desc, res);
+		fifo_push_uint16_nocheck(&adc_fifo_desc, (uint16_t)res);
 	}
 }
 
