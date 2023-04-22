@@ -11,10 +11,11 @@
 
 #include <asf.h>
 
+#define DIVR 0.571
 #define VREF 2.0625
 #define VOFFSET 0.103125
 #define ADC_TOP 4096
-#define code_to_V(res) (res * VREF / ADC_TOP + VOFFSET)
+#define code_to_V(res) ((res * VREF / ADC_TOP + VOFFSET) / DIVR)
 
 union adc_buffer_element
 {

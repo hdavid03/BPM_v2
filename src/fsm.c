@@ -36,7 +36,6 @@ static void init_ports(void)
 	LED1_OFF;
 	LED2_OFF;
 	VALVE_OFF;
-	PSW_ON;
 	MOTOR_OFF;
 }
 
@@ -71,7 +70,9 @@ state check_button(void)
 
 state dc_on(void)
 {
+	PSW_ON;
 	VALVE_ON;
+	_delay_ms(100);
 	MOTOR_ON;
 	LED2_ON;
 	adc_enable(&ADCA);
@@ -83,7 +84,7 @@ state check_pressure(void)
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value >= 100.0f)
+	if(resHgmm.value > 195.0f)
 		return DC_OFF;
 	return PUMP;
 }
@@ -101,7 +102,7 @@ state calculation(void)
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value <= 40.0f)
+	if(resHgmm.value <= 50.0f)
 	{
 		usart_putstring("XXXX");
 		adc_disable(&ADCA);

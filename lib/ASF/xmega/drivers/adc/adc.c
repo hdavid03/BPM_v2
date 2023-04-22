@@ -248,7 +248,7 @@ void adc_disable(ADC_t *adc)
 	adc_disable_clock(adc);
 	cpu_irq_restore(flags);
 
-	sleepmgr_unlock_mode(SLEEPMGR_IDLE);
+	//sleepmgr_unlock_mode(SLEEPMGR_IDLE);
 }
 
 /**
