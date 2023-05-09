@@ -6,11 +6,10 @@
  */ 
 #include <util/delay.h>
 #include <string.h>
-#include "fsm.h"
-#include "clk_setup.h"
-#include "adc_setup.h"
-#include "pwm_setup.h"
-#include "usartf0.h"
+#include <fsm.h>
+#include <clk_setup.h>
+#include <adc_setup.h>
+#include <usartf0.h>
 
 static void status_ok_led(void);
 static void init_ports(void);
@@ -51,11 +50,11 @@ void init_fsm(function* control)
 
 state init_bpm(void)
 {
-	setup_48MHz_12MHz_clock();
+	setup_clock();
 	init_ports();
 	usartf0_init();
-	pmic_enable_level(PMIC_LVL_LOW);	//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
 	adc_setup();
+	pmic_enable_level(PMIC_LVL_LOW);	//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
 	status_ok_led();
 	sei();
 	return IDLE;
@@ -84,7 +83,7 @@ state check_pressure(void)
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value > 195.0f)
+	if(resHgmm.value > 185.0f)
 		return DC_OFF;
 	return PUMP;
 }
@@ -104,8 +103,10 @@ state calculation(void)
 	usart_putbytes(resHgmm.bytes, sizeof(float));
 	if(resHgmm.value <= 50.0f)
 	{
-		usart_putstring("XXXX");
+		adc_flush(&ADCA);
 		adc_disable(&ADCA);
+		usart_putstring("XXXX");
+		_delay_ms(200);
 		VALVE_OFF;
 		LED1_OFF;
 		PSW_OFF;

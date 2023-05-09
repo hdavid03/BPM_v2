@@ -4,22 +4,24 @@
  * Created: 3/11/2022 4:13:42 PM
  *  Author: Hajdu Dávid
  */ 
-#include "adc_setup.h"
-#define My_ADC_Input (ADCCH_POS_PIN8 << ADC_CH_MUXPOS0_bp)
-#define ADC_BUFFSIZE 32U
-#define CTRLA (ADC_DMASEL_OFF_gc | ADC_FLUSH_bm | ADC_ENABLE_bm)
-#define CTRLB (ADC_RESOLUTION_12BIT_gc | ADC_FREERUN_bm)
-#define CH_CTRL (ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc)
-#define CH_INTCTRL (ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc)
+#include <adc_setup.h>
+#include <timer_setup.h>
+#define My_ADC_Input 	(ADCCH_POS_PIN8 << ADC_CH_MUXPOS0_bp)
+#define ADC_BUFFSIZE 	32U
+#define ADC_CLOCK		1000000UL
+#define CTRLA 			(ADC_DMASEL_OFF_gc | ADC_FLUSH_bm | ADC_ENABLE_bm)
+#define CH_CTRL 		(ADC_CH_GAIN_1X_gc | ADC_CH_INPUTMODE_SINGLEENDED_gc)
+#define CH_INTCTRL 		(ADC_CH_INTMODE_COMPLETE_gc | ADC_CH_INTLVL_LO_gc)
 
 fifo_desc_t adc_fifo_desc;
+
+static void evsys_setup(void);
+
 
 static struct adc_config conf = 
 {
 	.ctrla = CTRLA,
-	.ctrlb = CTRLB,
-	.refctrl = ADC_REFSEL_INTVCC_gc,
-	.prescaler = ADC_PRESCALER_DIV512_gc
+	.prescaler = ADC_PRESCALER_DIV4_gc
 };
 
 static struct adc_channel_config ch_conf =
@@ -31,11 +33,21 @@ static struct adc_channel_config ch_conf =
 
 union adc_buffer_element adc_buffer[ADC_BUFFSIZE];
 
+static void evsys_setup(void)
+{
+	sysclk_enable_module(SYSCLK_PORT_GEN, SYSCLK_EVSYS);
+	EVSYS.CH0MUX = EVSYS_CHMUX_TCC0_OVF_gc;
+}
+
 void adc_setup(void)
 {
 	// disable adc before writing the configuration
 	adc_disable(&ADCA);
-	
+	evsys_setup();
+	timer_setup();
+	adc_set_conversion_trigger(&conf, ADC_TRIG_EVENT_SINGLE, 1, 0);
+	adc_set_conversion_parameters(&conf, ADC_SIGN_OFF, ADC_RES_12, ADC_REF_VCC);
+	adc_set_clock_rate(&conf, ADC_CLOCK);
 	// write configuration in to registers
 	adc_write_configuration(&ADCA, &conf);
 	adcch_write_configuration(&ADCA, ADC_CH0, &ch_conf);

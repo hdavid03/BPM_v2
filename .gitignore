@@ -1,8 +1,10 @@
 out/
+app/__pycache__/
 *.xml
 *.elf
 *.hex
 *.lst
 *.o
+*.txt
 .vscode/settings.json
 

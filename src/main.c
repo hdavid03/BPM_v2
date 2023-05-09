@@ -29,8 +29,8 @@
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
-#include "fsm.h"
-#include "clk_setup.h"
+#include <fsm.h>
+#include <clk_setup.h>
 #include <util/delay.h>
 
 function control[CALC + 1];

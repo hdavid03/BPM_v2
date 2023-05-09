@@ -11,6 +11,6 @@
 
 #define PLL_ID 0U
 
-void setup_48MHz_12MHz_clock(void);
+void setup_clock(void);
 
 #endif /* CLK_SETUP_H_ */

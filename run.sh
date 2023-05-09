@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 
 cd "./app"
-./bpm.py 2>/dev/null
-
+./bpm.py $1 $2 #2>/dev/null
