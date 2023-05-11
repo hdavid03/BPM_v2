@@ -7,7 +7,7 @@
                 "/usr/avr/include/"
             ],
             "defines": ["__AVR_ATxmega128A3U__",
-                        "F_CPU=16000000UL",
+                        "F_CPU=12000000UL",
                         "BOARD=STK600_RC064X",
                         "IOPORT_XMEGA_COMPAT",
                         "XMEGA_AU",

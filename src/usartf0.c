@@ -8,7 +8,7 @@
 #define UARTF0_RXbm 0b00000100
 
 #define USART_SERIAL                     &USARTF0
-#define USART_SERIAL_BAUDRATE            19200
+#define USART_SERIAL_BAUDRATE            38400
 #define USART_SERIAL_CHAR_LENGTH         USART_CHSIZE_8BIT_gc
 #define USART_SERIAL_PARITY              USART_PMODE_DISABLED_gc
 #define USART_SERIAL_STOP_BIT            false
@@ -25,7 +25,6 @@ static usart_serial_options_t usart_options = {
 	.stopbits = USART_SERIAL_STOP_BIT
 };
 
-static volatile unsigned int transmit_stop;
 union rxbuffer_element {
 	uint8_t  byte;
 	uint16_t halfword;
@@ -59,7 +58,6 @@ void usartf0_init(void)
 	
 	fifo_init(&rxfifo_desc, fifo_rxbuf, RX_BUFF_SIZE);					//Initialize the rx FIFO
 	fifo_init(&txfifo_desc, fifo_txbuf, TX_BUFF_SIZE);					//Initialize the tx FIFO
-	transmit_stop = 1;	
 }
 
 uint8_t get_char(char *chr)

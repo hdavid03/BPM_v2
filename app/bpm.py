@@ -5,6 +5,7 @@ import configparser
 import array
 import peakfilter
 import argparse
+import struct
 import numpy as np
 import scipy.signal as sig
 from matplotlib import pyplot as plt
@@ -24,23 +25,29 @@ def init_config():
     return config
 
 
-def blood_pressure_monitoring(port, baudrate):
-    serial_port = serial.Serial(port=port, baudrate=baudrate,
-                            timeout=TIMEOUT, stopbits=1, bytesize=8)
+def blood_pressure_monitoring(p, br):
+    serial_port = serial.Serial(port=p, baudrate=br, timeout=TIMEOUT,
+                                stopbits=1, bytesize=8)
+    serial_port.flush()
     fig, ax = create_figure()
     floats = []
     stop = False
+    # while not stop:
     while not stop:
-        float_bytes = serial_port.read(BUFFERSIZE)
-        floats += array.array('f', float_bytes).tolist()
-        if floats[-1] > 5000:
+        float_bytes = serial_port.read(4)
+        float_value = struct.unpack('f', float_bytes)[0]
+        print(float_value)
+        if float_value > 15000:
             stop = True
-            floats.pop()
-        ax.clear()
-        ax.set_ylim([0, 200])
-        ax.set_xlim([0, 40000])
-        ax.plot(floats)
-        plt.pause(0.01)
+        else:
+            floats.append(float_value)
+        # float_bytes = serial_port.read(BUFFERSIZE)
+        # floats += array.array('f', float_bytes).tolist()
+    ax.clear()
+    ax.set_ylim([0, 200])
+    ax.set_xlim([0, 40000])
+    ax.plot(floats)
+    #plt.pause(0.01)
     serial_port.close()
     return floats
 
