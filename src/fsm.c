@@ -11,6 +11,10 @@
 #include <adc_setup.h>
 #include <usartf0.h>
 
+#define UART_MARKER "XXXX"
+#define PUMP_STOP	190.0f
+#define LET_DOWN	50.0f
+
 static void status_ok_led(void);
 static void init_ports(void);
 
@@ -83,7 +87,7 @@ state check_pressure(void)
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value > 185.0f)
+	if(resHgmm.value > PUMP_STOP)
 		return DC_OFF;
 	return PUMP;
 }
@@ -101,11 +105,11 @@ state calculation(void)
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value <= 50.0f)
+	if(resHgmm.value <= LET_DOWN)
 	{
 		adc_flush(&ADCA);
 		adc_disable(&ADCA);
-		usart_putstring("XXXX");
+		usart_putstring(UART_MARKER);
 		_delay_ms(200);
 		VALVE_OFF;
 		LED1_OFF;

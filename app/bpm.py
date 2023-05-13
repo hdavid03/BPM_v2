@@ -5,7 +5,6 @@ import configparser
 import array
 import peakfilter
 import argparse
-import struct
 import numpy as np
 import scipy.signal as sig
 from matplotlib import pyplot as plt
@@ -14,10 +13,8 @@ BPM_FILE = "bpm.txt"
 CONFIG_FILE = "config.ini"
 TIMEOUT = 10
 BUFFERSIZE = 256
-FS = 500
+FS = 960
 
-a = [-1.998072905031434, 0.998112346058487]
-b = [9.438269707564562e-04, 0, -9.438269707564562e-04]
 
 def init_config():
     config = configparser.ConfigParser()
@@ -26,28 +23,22 @@ def init_config():
 
 
 def blood_pressure_monitoring(p, br):
-    serial_port = serial.Serial(port=p, baudrate=br, timeout=TIMEOUT,
-                                stopbits=1, bytesize=8)
-    serial_port.flush()
+    serial_port = serial.Serial(port=p, baudrate=br,
+                            timeout=TIMEOUT, stopbits=1, bytesize=8)
     fig, ax = create_figure()
     floats = []
     stop = False
-    # while not stop:
     while not stop:
-        float_bytes = serial_port.read(4)
-        float_value = struct.unpack('f', float_bytes)[0]
-        print(float_value)
-        if float_value > 15000:
+        float_bytes = serial_port.read(BUFFERSIZE)
+        floats += array.array('f', float_bytes).tolist()
+        if floats[-1] > 5000:
             stop = True
-        else:
-            floats.append(float_value)
-        # float_bytes = serial_port.read(BUFFERSIZE)
-        # floats += array.array('f', float_bytes).tolist()
-    ax.clear()
-    ax.set_ylim([0, 200])
-    ax.set_xlim([0, 40000])
-    ax.plot(floats)
-    #plt.pause(0.01)
+            floats.pop()
+        ax.clear()
+        ax.set_ylim([0, 200])
+        ax.set_xlim([0, 104000])
+        ax.plot(floats)
+        plt.pause(0.01)
     serial_port.close()
     return floats
 
@@ -56,7 +47,7 @@ def create_figure():
     fig = plt.figure(figsize=(19.20, 10.80))
     ax = fig.add_subplot(111)
     ax.set_ylim([0, 200])
-    ax.set_xlim([0, 40000])
+    ax.set_xlim([0, 104000])
     return fig, ax
 
 
@@ -68,10 +59,10 @@ def filter_samples(result):
     wait = False
     for ii in range(0, len(result)):
         sample = result[ii]
-        if pump and (sample > 195):
+        if pump and (sample > 190):
             pump = False
             wait = True
-        if wait and (sample < 175):
+        if wait and (sample < 185):
             wait = False
             start_index = ii
         y.append(filt.filter_sample(sample))
@@ -81,6 +72,7 @@ def filter_samples(result):
 def find_min_and_max_values(start_index, y, samples):
     pi = 0
     mi = 0
+    print(start_index)
     peak_found = False
     min_found = False
     peak_positions = []
@@ -96,7 +88,7 @@ def find_min_and_max_values(start_index, y, samples):
             pi = ii
             m = samples[ii]
             peak_found = True
-        elif (y[ii] < max_v - 0.075) and (ii - pi > 280) and peak_found:
+        elif (y[ii] < max_v) and (ii - pi > 280) and peak_found:
             peak_found = False
             peak_positions.append(pi)
             peak_values.append(max_v)
@@ -127,7 +119,8 @@ def get_amplitudes(peak_values, min_values, peak_positions, min_positions):
         amplitudes.append(peak_values[p] - ((min_values[k] + min_values[k+1]) / 2))
         k = k + 1
     p = p + 1
-    while (p <= n_p) or (k < n_m):
+    while (p <= n_p) and (k < n_m):
+        print(p)
         amplitudes.append(peak_values[p] - ((min_values[k] + min_values[k + 1]) / 2))
         k = k + 1
         p = p + 1
@@ -139,11 +132,13 @@ def blood_pressure_measure(result):
     ret_dict = find_min_and_max_values(start_index, y, result)
     peak_positions = ret_dict["peak_positions"]
     peak_values = ret_dict["peak_values"]
-    min_positions = ret_dict["peak_positions"]
-    min_values = ret_dict["peak_values"]
-    measured_values = ret_dict["peak_values"]
+    min_positions = ret_dict["min_positions"]
+    min_values = ret_dict["min_values"]
+    measured_values = ret_dict["measured_values"]
+    print(f"Length of min values: {len(min_values), len(min_positions)}")
+    print(f"Length of max values: {len(peak_values), len(peak_positions)}")
     amplitudes = get_amplitudes(peak_values, min_values, peak_positions, min_positions)
-    max_v = amplitudes[0]
+    max_v = -1
     map_index = 0
     for ii in range(1, len(amplitudes)):
         if(amplitudes[ii] > max_v):
@@ -152,18 +147,13 @@ def blood_pressure_measure(result):
 
     SP = max_v * 0.7
     DP = max_v * 0.65
+    print(f"SP: {SP}, DP: {DP}")
+    print(f"MAP index: {map_index}")
     delta = 1.0
     sp_value = 0
     dp_value = 0
     sp_index = 0
     dp_index = 0
-    for ii in range(1, map_index - 1):
-        d = abs(y(peak_positions[ii]) - SP)
-        if d < delta:
-            delta = d
-            sp_value = measured_values[ii]
-            sp_index = peak_positions[ii]
-
     delta = 1.0
     for ii in range(0, map_index - 1):
         d = abs(amplitudes[ii] - SP)
@@ -182,9 +172,15 @@ def blood_pressure_measure(result):
 
     pulse = 0
     print(f"len_peak_pos: {len(peak_positions)}, len_amplitudes: {len(amplitudes)}")
-    for ii in range(0, len(peak_positions) - 1):
+    for ii in range(0, 10):
         pulse = pulse + peak_positions[ii + 1] - peak_positions[ii];
     pulse = 1 / (pulse / 10 * 1 / FS) * 60
+    fig = plt.figure(figsize=(19.2, 10.8))
+    ax = fig.add_subplot(111)
+    ax.plot(y, label='filtered')
+    ax.scatter(peak_positions, peak_values)
+    ax.scatter(min_positions, min_values)
+    plt.show()
     return pulse, sp_value, dp_value
 
 
@@ -215,18 +211,13 @@ def main():
                 file.write(f"{ii}\n")
 
     pulse, sys, dia = blood_pressure_measure(result)
+    fig = plt.figure(figsize=(19.2, 10.8))
+    ax = fig.add_subplot(111)
+    ax.plot(result)
+    plt.show()
     n = len(result)
     print(f"pulse: {pulse}, sys: {sys}, dia: {dia}")
     result_fft = 1 / n * np.fft.fft(result)
-    filt = peakfilter.PeakFilter()
-    b = sig.firls(numtaps=1501, bands=[0, 0.1, 0.4, 0.7],
-                  desired=[0, 0, 1, 1], fs=480)
-    #result_filtered = sig.lfilter(b, 1, result)
-    result_filtered = filt.filter_array(result)
-    fig = plt.figure(figsize=(19.2, 10.8))
-    ax = fig.add_subplot(111)
-    ax.plot(result_filtered, label='filtered')
-    plt.show()
 
 
 if __name__ == "__main__":
