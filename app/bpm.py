@@ -62,7 +62,7 @@ def filter_samples(result):
         if pump and (sample > 190):
             pump = False
             wait = True
-        if wait and (sample < 185):
+        if wait and (sample < 180):
             wait = False
             start_index = ii
         y.append(filt.filter_sample(sample))
@@ -88,7 +88,7 @@ def find_min_and_max_values(start_index, y, samples):
             pi = ii
             m = samples[ii]
             peak_found = True
-        elif (y[ii] < max_v) and (ii - pi > 280) and peak_found:
+        elif (y[ii] < max_v) and (ii - pi > 240) and peak_found:
             peak_found = False
             peak_positions.append(pi)
             peak_values.append(max_v)
