@@ -14,7 +14,7 @@
 typedef enum { INIT, IDLE, DC_ON, PUMP, DC_OFF, CALC } state;
 typedef state (*function)(void);
 
-state init_bpm(void);
+state init_peripherals(void);
 state check_button(void);
 state dc_on(void);
 state check_pressure(void);

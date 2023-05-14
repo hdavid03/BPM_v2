@@ -10,6 +10,7 @@
 #include <clk_setup.h>
 #include <adc_setup.h>
 #include <usartf0.h>
+#include <peak_filter.h>
 
 #define UART_MARKER "XXXX"
 #define PUMP_STOP	190.0f
@@ -17,6 +18,8 @@
 
 static void status_ok_led(void);
 static void init_ports(void);
+
+static peak_filter_t peak_filter;
 
 static void status_ok_led(void)
 {
@@ -44,7 +47,7 @@ static void init_ports(void)
 
 void init_fsm(function* control)
 {
-	control[INIT]	= init_bpm;
+	control[INIT]	= init_peripherals;
 	control[IDLE]	= check_button;
 	control[DC_ON]	= dc_on;
 	control[PUMP]	= check_pressure;
@@ -52,7 +55,7 @@ void init_fsm(function* control)
 	control[CALC]	= calculation;
 }
 
-state init_bpm(void)
+state init_peripherals(void)
 {
 	setup_clock();
 	init_ports();
@@ -61,6 +64,7 @@ state init_bpm(void)
 	pmic_enable_level(PMIC_LVL_LOW);	//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
 	status_ok_led();
 	sei();
+	peak_filter_init(&peak_filter);
 	return IDLE;
 }
 
@@ -84,8 +88,11 @@ state dc_on(void)
 
 state check_pressure(void)
 {
+	float filter_output = 0.0f;
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
+	filter_output = filter_sample(&peak_filter, resHgmm.value, filter_output);
+	resHgmm.value = filter_output;
 	usart_putbytes(resHgmm.bytes, sizeof(float));
 	if(resHgmm.value > PUMP_STOP)
 		return DC_OFF;

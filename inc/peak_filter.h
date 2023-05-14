@@ -14,6 +14,7 @@ struct peak_filter_t
 
 typedef struct peak_filter_t peak_filter_t;
 
-float filter_sample(peak_filter_t*, float, float);
+float filter_sample(peak_filter_t*, float x, float y);
+void peak_filter_init(peak_filter_t*);
 
 #endif

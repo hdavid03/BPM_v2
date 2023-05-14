@@ -116,11 +116,10 @@ def get_amplitudes(peak_values, min_values, peak_positions, min_positions):
     if peak_positions[p] < min_positions[k]:
         amplitudes.append(peak_values[p] - min_values[k])
     else:
-        amplitudes.append(peak_values[p] - ((min_values[k] + min_values[k+1]) / 2))
+        amplitudes.append(peak_values[p] - ((min_values[k] + min_values[k + 1]) / 2))
         k = k + 1
     p = p + 1
     while (p <= n_p) and (k < n_m):
-        print(p)
         amplitudes.append(peak_values[p] - ((min_values[k] + min_values[k + 1]) / 2))
         k = k + 1
         p = p + 1

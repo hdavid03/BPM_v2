@@ -1,11 +1,19 @@
 #include <peak_filter.h>
 #include <stdint.h>
 
-static float A_COEFFS = {-1.998072905031434, 0.998112346058487};
-static float B_COEFFS = {9.438269707564562e-04, 0, -9.438269707564562e-04};
-static uint8_t TAP_NUM = 3;
+static float A_COEFFS[] = {-1.998072905031434, 0.998112346058487};
+static float B_COEFFS[] = {9.438269707564562e-04, 0, -9.438269707564562e-04};
+static uint8_t TAP_NUM  = 3;
 
 static void update_filter_status(peak_filter_t*, float, float);
+
+void peak_filter_init(peak_filter_t* filter)
+{
+    filter->a = A_COEFFS;
+    filter->len_a = TAP_NUM - 1;
+    filter->b = B_COEFFS;
+    filter->len_b = TAP_NUM;
+}
 
 static void update_filter_status(peak_filter_t* filter,
                                  float input_sample, float pre_result)
