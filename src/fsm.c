@@ -64,7 +64,6 @@ state init_peripherals(void)
 	pmic_enable_level(PMIC_LVL_LOW);	//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
 	status_ok_led();
 	sei();
-	peak_filter_init(&peak_filter);
 	return IDLE;
 }
 
@@ -82,6 +81,7 @@ state dc_on(void)
 	_delay_ms(100);
 	MOTOR_ON;
 	LED2_ON;
+	peak_filter_init(&peak_filter);
 	adc_enable(&ADCA);
 	return PUMP;
 }
@@ -91,9 +91,8 @@ state check_pressure(void)
 	float filter_output = 0.0f;
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
-	filter_output = filter_sample(&peak_filter, resHgmm.value, filter_output);
-	resHgmm.value = filter_output;
-	usart_putbytes(resHgmm.bytes, sizeof(float));
+	filter_output = (float)filter_sample(&peak_filter, resHgmm.value, filter_output);
+	usart_putbytes((const char*)&filter_output, sizeof(float));
 	if(resHgmm.value > PUMP_STOP)
 		return DC_OFF;
 	return PUMP;
@@ -109,9 +108,11 @@ state dc_off(void)
 
 state calculation(void)
 {
+	float filter_output = 0.0f;
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
-	usart_putbytes(resHgmm.bytes, sizeof(float));
+	filter_output = (float)filter_sample(&peak_filter, resHgmm.value, filter_output);
+	usart_putbytes((const char*)&filter_output, sizeof(float));
 	if(resHgmm.value <= LET_DOWN)
 	{
 		adc_flush(&ADCA);

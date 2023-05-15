@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 BPM_FILE = "bpm.txt"
 CONFIG_FILE = "config.ini"
 TIMEOUT = 10
-BUFFERSIZE = 256
+BUFFERSIZE = 1024
 FS = 960
 
 
@@ -31,12 +31,12 @@ def blood_pressure_monitoring(p, br):
     while not stop:
         float_bytes = serial_port.read(BUFFERSIZE)
         floats += array.array('f', float_bytes).tolist()
-        if floats[-1] > 5000:
+        if floats[-1] > 55000:
             stop = True
             floats.pop()
         ax.clear()
-        ax.set_ylim([0, 200])
-        ax.set_xlim([0, 104000])
+        # ax.set_ylim([0, 200])
+        # ax.set_xlim([0, 104000])
         ax.plot(floats)
         plt.pause(0.01)
     serial_port.close()
@@ -46,8 +46,8 @@ def blood_pressure_monitoring(p, br):
 def create_figure():
     fig = plt.figure(figsize=(19.20, 10.80))
     ax = fig.add_subplot(111)
-    ax.set_ylim([0, 200])
-    ax.set_xlim([0, 104000])
+    # ax.set_ylim([0, 200])
+    # ax.set_xlim([0, 104000])
     return fig, ax
 
 
@@ -186,6 +186,7 @@ def blood_pressure_measure(result):
 def main():
     parser = argparse.ArgumentParser(description="Blood pressure monitoring script")
     parser.add_argument("--offline", action="store_true")
+    parser.add_argument("--test", action="store_true")
     parser.add_argument("--write_file", action="store_true")
     args = parser.parse_args()
 
@@ -209,14 +210,15 @@ def main():
             for ii in result:
                 file.write(f"{ii}\n")
 
-    pulse, sys, dia = blood_pressure_measure(result)
-    fig = plt.figure(figsize=(19.2, 10.8))
-    ax = fig.add_subplot(111)
-    ax.plot(result)
-    plt.show()
-    n = len(result)
-    print(f"pulse: {pulse}, sys: {sys}, dia: {dia}")
-    result_fft = 1 / n * np.fft.fft(result)
+    if not args.test:
+        pulse, sys, dia = blood_pressure_measure(result)
+        fig = plt.figure(figsize=(19.2, 10.8))
+        ax = fig.add_subplot(111)
+        ax.plot(result)
+        plt.show()
+        n = len(result)
+        print(f"pulse: {pulse}, sys: {sys}, dia: {dia}")
+        result_fft = 1 / n * np.fft.fft(result)
 
 
 if __name__ == "__main__":
