@@ -4,18 +4,18 @@
 
 struct peak_filter_t
 {
-    double* a;
-    double* b;
-    double* y;
-    double* x;
-    double pre_result;
+    float* a;
+    float* b;
+    float* y;
+    float* x;
+    float pre_result;
     uint8_t len_a;
     uint8_t len_b;   
 };
 
 typedef struct peak_filter_t peak_filter_t;
 
-double filter_sample(peak_filter_t*, double input);
+float filter_sample(peak_filter_t*, float input);
 void peak_filter_init(peak_filter_t*);
 
 #endif

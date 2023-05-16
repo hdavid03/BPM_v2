@@ -1,13 +1,13 @@
 #include <peak_filter.h>
 #include <stdint.h>
 
-static double A_COEFFS[] = {-1.998072905031434, 0.998112346058487};
-static double B_COEFFS[] = {9.438269707564562e-04, 0.0, -9.438269707564562e-04};
-static double X[] = {0.0, 0.0, 0.0};
-static double Y[] = {0.0, 0.0};
+static float A_COEFFS[] = {-1.998072905031434F, 0.998112346058487F};
+static float B_COEFFS[] = {9.438269707564562e-04F, 0.0F, -9.438269707564562e-04F};
+static float X[] = {0.0F, 0.0F, 0.0F};
+static float Y[] = {0.0F, 0.0F};
 static uint8_t TAP_NUM  = 3;
 
-static void update_filter_status(peak_filter_t*, double);
+static void update_filter_status(peak_filter_t*, float);
 
 void peak_filter_init(peak_filter_t* filter)
 {
@@ -17,12 +17,12 @@ void peak_filter_init(peak_filter_t* filter)
     filter->len_b = TAP_NUM;
     filter->x = X;
     filter->y = Y;
-    filter->pre_result = 0.0;
+    filter->pre_result = 0.0f;
 }
 
-static void update_filter_status(peak_filter_t* filter, double input_sample)
+static void update_filter_status(peak_filter_t* filter, float input_sample)
 {
-    double tmp = 0.0;
+    float tmp = 0.0f;
     for (uint8_t ii = 0; ii < filter->len_b; ii++)
     {
         tmp = filter->x[ii];
@@ -37,10 +37,10 @@ static void update_filter_status(peak_filter_t* filter, double input_sample)
     }
 }
 
-double filter_sample(peak_filter_t* filter, double input_sample)
+float filter_sample(peak_filter_t* filter, float input_sample)
 {
-    double tmp_a = 0.0;
-    double tmp_b = 0.0;
+    float tmp_a = 0.0f;
+    float tmp_b = 0.0f;
     update_filter_status(filter, input_sample);
     for (uint8_t ii = 0; ii < filter->len_b; ii++)
     {

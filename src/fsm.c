@@ -11,6 +11,7 @@
 #include <adc_setup.h>
 #include <usartf0.h>
 #include <peak_filter.h>
+#include <bpm.h>
 
 #define UART_MARKER "XXXX"
 #define PUMP_STOP	190.0f
@@ -18,8 +19,11 @@
 
 static void status_ok_led(void);
 static void init_ports(void);
+static void peripherals_off(void);
+static void put_bpm_result(bpm_result_t*);
 
 static peak_filter_t peak_filter;
+static bpm_status_t  status;
 
 static void status_ok_led(void)
 {
@@ -43,6 +47,23 @@ static void init_ports(void)
 	LED2_OFF;
 	VALVE_OFF;
 	MOTOR_OFF;
+}
+
+static void put_bpm_result(bpm_result_t* result)
+{
+	usart_putbytes((const char*)&result->sys, sizeof(float));
+	usart_putbytes((const char*)&result->dia, sizeof(float));
+	usart_putbytes((const char*)&result->pulse, sizeof(float));
+}
+
+static void peripherals_off(void)
+{
+	adc_flush(&ADCA);
+	adc_disable(&ADCA);
+	_delay_ms(200);
+	VALVE_OFF;
+	LED1_OFF;
+	PSW_OFF;
 }
 
 void init_fsm(function* control)
@@ -82,6 +103,7 @@ state dc_on(void)
 	MOTOR_ON;
 	LED2_ON;
 	peak_filter_init(&peak_filter);
+	bpm_init();
 	adc_enable(&ADCA);
 	return PUMP;
 }
@@ -91,8 +113,8 @@ state check_pressure(void)
 	float filter_output = 0.0f;
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
-	filter_output = (float)filter_sample(&peak_filter, resHgmm.value);
-	usart_putbytes((const char*)&filter_output, sizeof(float));
+	filter_output = filter_sample(&peak_filter, resHgmm.value);
+	usart_putbytes(resHgmm.bytes, sizeof(float));
 	if(resHgmm.value > PUMP_STOP)
 		return DC_OFF;
 	return PUMP;
@@ -111,17 +133,15 @@ state calculation(void)
 	float filter_output = 0.0f;
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
-	filter_output = (float)filter_sample(&peak_filter, resHgmm.value);
-	usart_putbytes((const char*)&filter_output, sizeof(float));
-	if(resHgmm.value <= LET_DOWN)
+	filter_output = filter_sample(&peak_filter, resHgmm.value);
+	usart_putbytes(resHgmm.bytes, sizeof(float));
+	bpm_update_status(resHgmm.value, filter_output);
+	if(resHgmm.value < LET_DOWN)
 	{
-		adc_flush(&ADCA);
-		adc_disable(&ADCA);
+		peripherals_off();
+		bpm_result_t result = bpm_get_result();
+		put_bpm_result(&result);
 		usart_putstring(UART_MARKER);
-		_delay_ms(200);
-		VALVE_OFF;
-		LED1_OFF;
-		PSW_OFF;
 		return IDLE;
 	}
 	return CALC;

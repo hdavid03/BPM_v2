@@ -12,7 +12,7 @@ from matplotlib import pyplot as plt
 BPM_FILE = "bpm.txt"
 CONFIG_FILE = "config.ini"
 TIMEOUT = 10
-BUFFERSIZE = 1024
+BUFFERSIZE = 384
 FS = 960
 
 
@@ -27,6 +27,7 @@ def blood_pressure_monitoring(p, br):
                             timeout=TIMEOUT, stopbits=1, bytesize=8)
     fig, ax = create_figure()
     floats = []
+    bpm_res = []
     stop = False
     while not stop:
         float_bytes = serial_port.read(BUFFERSIZE)
@@ -34,13 +35,16 @@ def blood_pressure_monitoring(p, br):
         if floats[-1] > 55000:
             stop = True
             floats.pop()
+            bpm_res.append(floats.pop())
+            bpm_res.append(floats.pop())
+            bpm_res.append(floats.pop())
         ax.clear()
         # ax.set_ylim([0, 200])
         # ax.set_xlim([0, 104000])
         ax.plot(floats)
         plt.pause(0.01)
     serial_port.close()
-    return floats
+    return floats, bpm_res
 
 
 def create_figure():
@@ -62,7 +66,7 @@ def filter_samples(result):
         if pump and (sample > 190):
             pump = False
             wait = True
-        if wait and (sample < 180):
+        if wait and (sample < 190):
             wait = False
             start_index = ii
         y.append(filt.filter_sample(sample))
@@ -80,8 +84,8 @@ def find_min_and_max_values(start_index, y, samples):
     min_positions = []
     min_values = []
     measured_values = []
-    max_v = -2
-    min_v = 2
+    max_v = -999.9
+    min_v = 999.9
     for ii in range(start_index, len(y)):
         if(y[ii] > max_v):
             max_v = y[ii]
@@ -98,7 +102,7 @@ def find_min_and_max_values(start_index, y, samples):
             min_v = y[ii]
             mi = ii
             min_found = True
-        elif (y[ii] > min_v) and (min_found) and (ii - mi > 280):
+        elif (y[ii] > min_v) and (ii - mi > 240) and min_found:
             min_found = False
             min_positions.append(mi)
             min_values.append(min_v)
@@ -109,7 +113,7 @@ def find_min_and_max_values(start_index, y, samples):
 
 def get_amplitudes(peak_values, min_values, peak_positions, min_positions):
     amplitudes = []
-    n_p = len(peak_values) - 2
+    n_p = len(peak_values) - 1
     n_m = len(min_values) - 2
     k = 0
     p = 0
@@ -119,7 +123,7 @@ def get_amplitudes(peak_values, min_values, peak_positions, min_positions):
         amplitudes.append(peak_values[p] - ((min_values[k] + min_values[k + 1]) / 2))
         k = k + 1
     p = p + 1
-    while (p <= n_p) and (k < n_m):
+    while (p < n_p) and (k < n_m):
         amplitudes.append(peak_values[p] - ((min_values[k] + min_values[k + 1]) / 2))
         k = k + 1
         p = p + 1
@@ -139,7 +143,7 @@ def blood_pressure_measure(result):
     amplitudes = get_amplitudes(peak_values, min_values, peak_positions, min_positions)
     max_v = -1
     map_index = 0
-    for ii in range(1, len(amplitudes)):
+    for ii in range(3, len(amplitudes)):
         if(amplitudes[ii] > max_v):
             max_v = amplitudes[ii]
             map_index = ii
@@ -203,7 +207,8 @@ def main():
         port = config["device"]["port"]
         baudrate = config["device"]["baudrate"]
         print(f"hello {port}")
-        result = blood_pressure_monitoring(port, baudrate)
+        result, bpm_res = blood_pressure_monitoring(port, baudrate)
+        print(f"result of bpm:\n\tsys:{bpm_res[2]}\n\tdia:{bpm_res[1]}\n\tpulse:{bpm_res[0]}")
 
     if args.write_file:
         with open(BPM_FILE, "w") as file:
