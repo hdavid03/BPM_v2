@@ -91,7 +91,7 @@ state check_pressure(void)
 	float filter_output = 0.0f;
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
-	filter_output = (float)filter_sample(&peak_filter, resHgmm.value, filter_output);
+	filter_output = (float)filter_sample(&peak_filter, resHgmm.value);
 	usart_putbytes((const char*)&filter_output, sizeof(float));
 	if(resHgmm.value > PUMP_STOP)
 		return DC_OFF;
@@ -111,7 +111,7 @@ state calculation(void)
 	float filter_output = 0.0f;
 	float_byteblock resHgmm;
 	complete_conversion(&(resHgmm.value));
-	filter_output = (float)filter_sample(&peak_filter, resHgmm.value, filter_output);
+	filter_output = (float)filter_sample(&peak_filter, resHgmm.value);
 	usart_putbytes((const char*)&filter_output, sizeof(float));
 	if(resHgmm.value <= LET_DOWN)
 	{
