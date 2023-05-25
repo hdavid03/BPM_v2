@@ -104,6 +104,7 @@ state dc_on(void)
 	LED2_ON;
 	peak_filter_init(&peak_filter);
 	bpm_init();
+	adc_reset_fifo();
 	adc_enable(&ADCA);
 	return PUMP;
 }

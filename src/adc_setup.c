@@ -7,6 +7,7 @@
 #include <adc_setup.h>
 #include <timer_setup.h>
 #define My_ADC_Input 	(ADCCH_POS_PIN8 << ADC_CH_MUXPOS0_bp)
+// ellenőrizni a mérés elején lévő ugrást
 #define ADC_BUFFSIZE 	32U
 #define ADC_CLOCK		31250UL
 #define CTRLA 			(ADC_DMASEL_OFF_gc | ADC_FLUSH_bm | ADC_ENABLE_bm)
@@ -76,4 +77,13 @@ void adc_read_result(ADC_t *adc, uint8_t ch_mask, adc_result_t res)
 	}
 }
 
+void adc_reset_fifo(void)
+{
+	if (adc_is_enabled(&ADCA))
+		adc_disable(&ADCA);
+	while(!fifo_is_empty(&adc_fifo_desc))
+	{
+		fifo_pull_uint16_nocheck(&adc_fifo_desc);
+	}
+}
 

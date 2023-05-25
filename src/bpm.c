@@ -73,7 +73,7 @@ static float calculate_systolic(float exp_sys, uint8_t map_index)
 
 static float calculate_pulse(void)
 {
-    uint8_t n = local_max_buff.size / 3;
+    uint8_t n = local_max_buff.size;
     float sum = 0.0f;
     for (uint8_t ii = 0; ii < n; ii++)
     {

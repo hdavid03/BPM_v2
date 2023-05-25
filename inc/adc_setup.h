@@ -15,7 +15,7 @@
 #define VREF 2.0625
 #define VOFFSET 0.103125
 #define ADC_TOP 4096
-#define code_to_V(res) ((res * VREF / ADC_TOP + VOFFSET) / DIVR)
+#define code_to_V(res) ((res * VREF / ADC_TOP - VOFFSET) / DIVR)
 
 union adc_buffer_element
 {
@@ -33,6 +33,7 @@ typedef union
 void adc_setup(void);
 void adc_read_result(ADC_t*, uint8_t, adc_result_t);
 uint8_t get_result(float*);
+void adc_reset_fifo(void);
 
 static inline float convert_result_to_Hgmm(float x)
 {

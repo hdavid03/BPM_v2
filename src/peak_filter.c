@@ -15,6 +15,14 @@ void peak_filter_init(peak_filter_t* filter)
     filter->len_a = TAP_NUM - 1;
     filter->b = B_COEFFS;
     filter->len_b = TAP_NUM;
+    for (int ii = 0; ii < TAP_NUM; ii++)
+    {
+        X[ii] = 0.0F;
+    }
+    for (int ii = 0; ii < TAP_NUM - 1; ii++)
+    {
+        Y[ii] = 0.0F;
+    }
     filter->x = X;
     filter->y = Y;
     filter->pre_result = 0.0f;
