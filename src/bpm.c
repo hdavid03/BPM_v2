@@ -7,7 +7,7 @@
 #define TMP_DEFAULT 999.9f
 #define FS          1500.0f
 #define SYS         0.55f
-#define DIA         0.7f
+#define DIA         0.78f
 #define TIME_OFFSET 500
 #define PEAK_OFFSET 0.075f
 

@@ -19,6 +19,8 @@ OFFSET = 29.91
 FS = 1500
 UART_STOP = 1e6
 PUMP_STOP = 195
+SYS_RATIO = 0.55
+DIA_RATIO = 0.78
 FONT_TITLE = {'family': 'serif',
         'color':  'black',
         'weight': 'bold',
@@ -195,8 +197,8 @@ def blood_pressure_measure(result):
             max_v = amplitudes[ii]
             map_index = ii
 
-    SP = max_v * 0.55
-    DP = max_v * 0.7
+    SP = max_v * SYS_RATIO
+    DP = max_v * DIA_RATIO
     delta = 1.0
     sp_value = 0
     dp_value = 0
