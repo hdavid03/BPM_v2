@@ -5,8 +5,8 @@
 #define BUFFSIZE    64U
 #define TMP_DEFAULT 999.9f
 #define FS          960.0f
-#define SYS         0.7f
-#define DIA         0.65f
+#define SYS         0.55f
+#define DIA         0.7f
 
 static float    amplitudes[BUFFSIZE];
 static float    max_values[BUFFSIZE];

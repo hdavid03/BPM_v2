@@ -1,23 +1,18 @@
 /**
  * \file
  *
- * \brief Empty user application template
+ * \brief Blood pressure monitoring application
  *
  */
 
 /**
- * \mainpage User Application template doxygen documentation
- *
- * \par Empty user application template
- *
- * Bare minimum empty user application template
+ * \mainpage Blood pressure monitoring application documentation
  *
  * \par Content
  *
- * -# Include the ASF header files (through asf.h)
- * -# "Insert system clock initialization code here" comment
- * -# Minimal main function that starts with a call to board_init()
- * -# "Insert application code here" comment
+ * -# This application is running only AVR microcontroller with
+ * 	  specific hardware setup. The blood pressure monitoring algorithm
+ * 	  is based on the fixed-ratio method.
  *
  */
 
@@ -30,8 +25,6 @@
  */
 
 #include <fsm.h>
-#include <clk_setup.h>
-#include <util/delay.h>
 
 function control[CALC + 1];
 
