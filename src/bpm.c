@@ -1,12 +1,15 @@
 #include <bpm.h>
 #include <peak_filter.h>
 #include <math.h>
+#include <define_ports.h>
 
 #define BUFFSIZE    64U
 #define TMP_DEFAULT 999.9f
-#define FS          960.0f
+#define FS          1500.0f
 #define SYS         0.55f
 #define DIA         0.7f
+#define TIME_OFFSET 500
+#define PEAK_OFFSET 0.075f
 
 static float    amplitudes[BUFFSIZE];
 static float    max_values[BUFFSIZE];
@@ -73,7 +76,7 @@ static float calculate_systolic(float exp_sys, uint8_t map_index)
 
 static float calculate_pulse(void)
 {
-    uint8_t n = local_max_buff.size;
+    uint8_t n = local_max_buff.size - 1;
     float sum = 0.0f;
     for (uint8_t ii = 0; ii < n; ii++)
     {
@@ -169,10 +172,11 @@ void bpm_update_status(float input, float filt_output)
         status.meas_value = input;
         status.pos_max = status.counter;
     }
-    else if ((filt_output < status.tmp_max) &&
-             (status.counter - status.pos_max > 240) &&
+    else if ((filt_output < status.tmp_max - PEAK_OFFSET) &&
+             (status.counter - status.pos_max > TIME_OFFSET) &&
              status.max_found)
     {
+        LED2_ON;
         status.max_found = false;
         put_data(&local_max_buff, status.tmp_max, status.pos_max);
         put_data(&meas_buff, status.meas_value, status.pos_max);
@@ -184,10 +188,11 @@ void bpm_update_status(float input, float filt_output)
         status.min_found = true;
         status.pos_min = status.counter;
     }
-    else if ((filt_output > status.tmp_min) &&
-             (status.counter - status.pos_min > 240) &&
+    else if ((filt_output > status.tmp_min + PEAK_OFFSET) &&
+             (status.counter - status.pos_min > TIME_OFFSET) &&
              status.min_found)
     {
+        LED2_OFF;
         status.min_found = false;
         put_data(&local_min_buff, status.tmp_min, status.pos_min);
         status.tmp_min = filt_output;

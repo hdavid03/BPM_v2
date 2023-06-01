@@ -11,7 +11,7 @@ TARGET = main
 
 #MCU specification
 MCU = atxmega128a3u
-F_CPU = 12000000UL
+F_CPU = 24000000UL
 
 #Options for avr-gcc
 OPTLEVEL = s

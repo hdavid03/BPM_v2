@@ -26,7 +26,7 @@
 
 #include <fsm.h>
 
-function control[CALC + 1];
+function control[END + 1];
 
 int main (void)
 {

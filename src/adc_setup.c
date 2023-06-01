@@ -7,7 +7,6 @@
 #include <adc_setup.h>
 #include <timer_setup.h>
 #define My_ADC_Input 	(ADCCH_POS_PIN8 << ADC_CH_MUXPOS0_bp)
-// ellenőrizni a mérés elején lévő ugrást
 #define ADC_BUFFSIZE 	32U
 #define ADC_CLOCK		31250UL
 #define CTRLA 			(ADC_DMASEL_OFF_gc | ADC_FLUSH_bm | ADC_ENABLE_bm)

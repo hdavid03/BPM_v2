@@ -8,7 +8,7 @@
 #define UARTF0_RXbm 0b00000100
 
 #define USART_SERIAL                     &USARTF0
-#define USART_SERIAL_BAUDRATE            38400
+#define USART_SERIAL_BAUDRATE            57600
 #define USART_SERIAL_CHAR_LENGTH         USART_CHSIZE_8BIT_gc
 #define USART_SERIAL_PARITY              USART_PMODE_DISABLED_gc
 #define USART_SERIAL_STOP_BIT            false

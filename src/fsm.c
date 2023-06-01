@@ -14,8 +14,8 @@
 #include <bpm.h>
 
 #define UART_MARKER "XXXX"
-#define PUMP_STOP	190.0f
-#define LET_DOWN	50.0f
+#define PUMP_STOP	195.0f
+#define LET_DOWN	40.0f
 
 static void status_ok_led(void);
 static void init_ports(void);
@@ -63,6 +63,7 @@ static void peripherals_off(void)
 	_delay_ms(200);
 	VALVE_OFF;
 	LED1_OFF;
+	LED2_OFF;
 	PSW_OFF;
 }
 
@@ -74,6 +75,7 @@ void init_fsm(function* control)
 	control[PUMP]	= check_pressure;
 	control[DC_OFF]	= dc_off;
 	control[CALC]	= calculation;
+	control[END]	= result;
 }
 
 state init_peripherals(void)
@@ -82,7 +84,7 @@ state init_peripherals(void)
 	init_ports();
 	usartf0_init();
 	adc_setup();
-	pmic_enable_level(PMIC_LVL_LOW);	//Proc Multylevel Interrupt Controller (PMIC) enable IT level LOW
+	pmic_enable_level(PMIC_LVL_LOW);	
 	status_ok_led();
 	sei();
 	return IDLE;
@@ -125,7 +127,6 @@ state dc_off(void)
 {
 	MOTOR_OFF;
 	LED2_OFF;
-	LED1_ON;
 	return CALC;
 }
 
@@ -138,12 +139,15 @@ state calculation(void)
 	usart_putbytes(resHgmm.bytes, sizeof(float));
 	bpm_update_status(resHgmm.value, filter_output);
 	if(resHgmm.value < LET_DOWN)
-	{
-		peripherals_off();
-		bpm_result_t result = bpm_get_result();
-		put_bpm_result(&result);
-		usart_putstring(UART_MARKER);
-		return IDLE;
-	}
+		return END;
 	return CALC;
+}
+
+state result(void)
+{
+	bpm_result_t result = bpm_get_result();
+	put_bpm_result(&result);
+	usart_putstring(UART_MARKER);
+	peripherals_off();
+	return IDLE;
 }

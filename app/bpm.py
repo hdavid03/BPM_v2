@@ -8,12 +8,17 @@ import argparse
 import numpy as np
 from matplotlib import pyplot as plt
 
+# Global Literals
 BPM_FILE = "bpm.txt"
 CONFIG_FILE = "config.ini"
-TIMEOUT = 10
-BUFFERSIZE = 384
+TIMEOUT = 2
+BUFFERSIZE = 512
+TIME_OFFSET = 500
+PEAK_OFFSET = 0.075
 OFFSET = 29.91
-FS = 960
+FS = 1500
+UART_STOP = 1e6
+PUMP_STOP = 195
 FONT_TITLE = {'family': 'serif',
         'color':  'black',
         'weight': 'bold',
@@ -35,22 +40,20 @@ def init_config():
 def blood_pressure_monitoring(p, br):
     serial_port = serial.Serial(port=p, baudrate=br,
                             timeout=TIMEOUT, stopbits=1, bytesize=8)
-    fig, ax = create_figure()
+    _, ax = create_figure()
     floats = []
     bpm_res = []
     stop = False
     while not stop:
-        float_bytes = serial_port.read(BUFFERSIZE)
+        float_bytes = serial_port.read_until(b"XXXX", BUFFERSIZE)
         floats += array.array('f', float_bytes).tolist()
-        if floats[-1] > 55000:
+        if floats[-1] > UART_STOP:
             stop = True
             floats.pop()
             bpm_res.append(floats.pop())
             bpm_res.append(floats.pop())
             bpm_res.append(floats.pop())
         ax.clear()
-        # ax.set_ylim([0, 200])
-        # ax.set_xlim([0, 104000])
         ax.plot(floats)
         plt.pause(0.01)
     serial_port.close()
@@ -59,9 +62,8 @@ def blood_pressure_monitoring(p, br):
 
 def create_figure():
     fig = plt.figure(figsize=(19.20, 10.80))
+    fig.set_tight_layout(True)
     ax = fig.add_subplot(111)
-    # ax.set_ylim([0, 200])
-    # ax.set_xlim([0, 104000])
     return fig, ax
 
 
@@ -73,10 +75,10 @@ def filter_samples(result):
     wait = False
     for ii in range(0, len(result)):
         sample = result[ii]
-        if pump and (sample > 190):
+        if pump and (sample > PUMP_STOP):
             pump = False
             wait = True
-        if wait and (sample < 190):
+        if wait and (sample < PUMP_STOP):
             wait = False
             start_index = ii
         y.append(filt.filter_sample(sample))
@@ -86,7 +88,6 @@ def filter_samples(result):
 def find_min_and_max_values(start_index, y, samples):
     pi = 0
     mi = 0
-    print(start_index)
     peak_found = False
     min_found = False
     peak_positions = []
@@ -102,7 +103,7 @@ def find_min_and_max_values(start_index, y, samples):
             pi = ii
             m = samples[ii]
             peak_found = True
-        elif (y[ii] < max_v) and (ii - pi > 340) and peak_found:
+        elif (y[ii] < max_v - PEAK_OFFSET) and (ii - pi > TIME_OFFSET) and peak_found:
             peak_found = False
             peak_positions.append(pi)
             peak_values.append(max_v)
@@ -112,7 +113,7 @@ def find_min_and_max_values(start_index, y, samples):
             min_v = y[ii]
             mi = ii
             min_found = True
-        elif (y[ii] > min_v) and (ii - mi > 340) and min_found:
+        elif (y[ii] > min_v + PEAK_OFFSET) and (ii - mi > TIME_OFFSET) and min_found:
             min_found = False
             min_positions.append(mi)
             min_values.append(min_v)
@@ -120,6 +121,7 @@ def find_min_and_max_values(start_index, y, samples):
     return {"peak_positions": peak_positions, "peak_values": peak_values,
             "min_positions": min_positions, "min_values": min_values,
             "measured_values": measured_values}
+
 
 def get_amplitudes(peak_values, min_values, peak_positions, min_positions):
     amplitudes = []
@@ -141,9 +143,7 @@ def get_amplitudes(peak_values, min_values, peak_positions, min_positions):
 
 
 def amplitudes_barplot(amplitudes, measured_values):
-    fig = plt.figure()
-    fig.set_tight_layout(True)
-    ax = fig.add_subplot(111)
+    _, ax = create_figure()
     amplitudes = amplitudes[3:]
     measured_values = measured_values[3:-1]
     x = list(range(len(amplitudes)))
@@ -151,10 +151,31 @@ def amplitudes_barplot(amplitudes, measured_values):
     ax.set_title("Amplitúdók a nyomás értékek függvényében",
                  fontdict=FONT_TITLE)
     ax.set_xticks(list(range(len(measured_values))))
-    ax.set_xticklabels(list(map(lambda x: f"{x - OFFSET:.2f}", measured_values)))
+    ax.set_xticklabels(list(map(lambda x: f"{x:.2f}", measured_values)))
     ax.set_xlabel("Korrigált nyers mérési adatok [Hgmm]", fontdict=FONT_LABEL)
     ax.set_ylabel("Amplitúdók becsült értéke [Hgmm]", fontdict=FONT_LABEL)
+    ax.grid(True, 'both', 'y')
     plt.setp(ax.xaxis.get_majorticklabels(), rotation=70)
+
+
+def filtered_signal_plot(t, y, peak_positions, peak_values, min_positions, min_values):
+    _, ax = create_figure()
+    ax.plot(t, y, label='filtered')
+    ax.scatter(peak_positions, peak_values, marker='v', c='red')
+    ax.scatter(min_positions, min_values, marker='^', c='purple')
+    ax.set_title("Lokális maximum és minimum értékek a szűrt jelen", 
+                 fontdict=FONT_TITLE)
+    ax.set_xlabel("Idő [sec]", fontdict=FONT_LABEL)
+    ax.set_ylabel("Nyomás [Hgmm]", fontdict=FONT_LABEL)
+    ax.grid(True, 'both')
+
+
+def calculate_pulse(peak_positions):
+    pulse = 0
+    n = len(peak_positions) - 1
+    for ii in range(0, n):
+        pulse = pulse + peak_positions[ii + 1] - peak_positions[ii];
+    return 1 / (pulse / n) * 60
 
 
 def blood_pressure_measure(result):
@@ -165,8 +186,6 @@ def blood_pressure_measure(result):
     min_positions = list(map(lambda x: x * 1/FS, ret_dict["min_positions"]))
     min_values = ret_dict["min_values"]
     measured_values = ret_dict["measured_values"]
-    print(f"Length of min values: {len(min_values), len(min_positions)}")
-    print(f"Length of max values: {len(peak_values), len(peak_positions)}")
     amplitudes = get_amplitudes(peak_values, min_values, peak_positions, min_positions)
     amplitudes_barplot(amplitudes, measured_values)
     max_v = -1
@@ -178,20 +197,14 @@ def blood_pressure_measure(result):
 
     SP = max_v * 0.55
     DP = max_v * 0.7
-    print(f"SP: {SP}, DP: {DP}")
-    print(f"MAP index: {map_index}")
     delta = 1.0
     sp_value = 0
     dp_value = 0
-    sp_index = 0
-    dp_index = 0
-    delta = 1.0
-    for ii in range(0, map_index - 1):
+    for ii in range(3, map_index - 1):
         d = abs(amplitudes[ii] - SP)
         if d < delta:
             delta = d
             sp_value = measured_values[ii]
-            sp_index = peak_positions[ii]
 
     delta = 1.0
     for ii in range(map_index + 1, len(amplitudes)):
@@ -199,28 +212,13 @@ def blood_pressure_measure(result):
         if d < delta:
             delta = d
             dp_value = measured_values[ii]
-            dp_index = peak_positions[ii]
 
-    pulse = 0
-    print(f"len_peak_pos: {len(peak_positions)}, len_amplitudes: {len(amplitudes)}")
-    for ii in range(0, 10):
-        pulse = pulse + peak_positions[ii + 1] - peak_positions[ii];
-    pulse = 1 / (pulse / 10) * 60
-    fig = plt.figure(figsize=(19.2, 10.8))
+    pulse = calculate_pulse(peak_positions)
     N = len(y)
     t = [(1 / FS) * ii for ii in range(0, N)]
-    fig.set_tight_layout(True)
-    ax = fig.add_subplot(111)
-    ax.plot(t, y, label='filtered')
-    ax.scatter(peak_positions, peak_values)
-    ax.scatter(min_positions, min_values)
-    ax.set_title("Lokális maximum és minimum értékek a szűrt jelen", 
-                 fontdict=FONT_TITLE)
-    ax.set_xlabel("Idő [sec]", fontdict=FONT_LABEL)
-    ax.set_ylabel("Nyomás [Hgmm]", fontdict=FONT_LABEL)
-    ax.grid(True, 'both')
+    filtered_signal_plot(t, y, peak_positions, peak_values, min_positions, min_values)
     plt.show()
-    return pulse, sp_value - OFFSET, dp_value - OFFSET
+    return pulse, sp_value, dp_value
 
 
 def main():
@@ -253,19 +251,15 @@ def main():
 
     if not args.test:
         pulse, sys, dia = blood_pressure_measure(result)
-        fig = plt.figure(figsize=(19.2, 10.8))
-        fig.set_tight_layout(True)
-        ax = fig.add_subplot(111)
+        _, ax = create_figure()
         t = [1/FS * ii for ii in range(len(result))]
         ax.plot(t, result)
-        ax.set_title("Offset értékkel terhelt nyers mérési adatok",
-                     fontdict=FONT_TITLE)
+        ax.set_title("Nyers mérési adatok", fontdict=FONT_TITLE)
         ax.set_xlabel("Idő [sec]", fontdict=FONT_LABEL)
         ax.set_ylabel("Nyomás [Hgmm]", fontdict=FONT_LABEL)
+        ax.grid(True, 'both')
         plt.show()
-        n = len(result)
-        print(f"pulse: {pulse}, sys: {sys}, dia: {dia}")
-        result_fft = 1 / n * np.fft.fft(result)
+        print(f"result of bpm (offline):\n\tsys:{sys}\n\tdia:{dia}\n\tpulse:{pulse}")
 
 
 if __name__ == "__main__":
