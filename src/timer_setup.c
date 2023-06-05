@@ -15,8 +15,8 @@ void timer_setup(void)
     tc_set_overflow_interrupt_level(&TCC0, TC_INT_LVL_LO);
     tc_set_wgm(&TCC0, TC_WG_NORMAL);
     tc_set_direction(&TCC0, TC_UP);
-    // CLK DIV2 -> 12 MHz / 2 = 6 MHz
+    // CLK DIV2 -> 24 MHz / 2 = 12 MHz
     tc_write_clock_source(&TCC0, TC_CLKSEL_DIV2_gc);
-    // period 6250 -> Fs = 1500 Hz -> 6000000 / 1500 = 4000
-    tc_write_period(&TCC0, 8000);
+    // period -> Fs = 1200 Hz -> 12000000 / 1200 = 10000
+    tc_write_period(&TCC0, 10000);
 }

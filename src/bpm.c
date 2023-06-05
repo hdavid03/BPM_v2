@@ -5,11 +5,11 @@
 
 #define BUFFSIZE    64U
 #define TMP_DEFAULT 999.9f
-#define FS          1500.0f
+#define FS          1200.0f
 #define SYS         0.55f
 #define DIA         0.78f
-#define TIME_OFFSET 500
-#define PEAK_OFFSET 0.075f
+#define TIME_OFFSET 380
+#define PEAK_OFFSET 0.065f
 
 static float    amplitudes[BUFFSIZE];
 static float    max_values[BUFFSIZE];

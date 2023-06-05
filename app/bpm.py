@@ -13,10 +13,10 @@ BPM_FILE = "bpm.txt"
 CONFIG_FILE = "config.ini"
 TIMEOUT = 2
 BUFFERSIZE = 512
-TIME_OFFSET = 500
-PEAK_OFFSET = 0.075
+TIME_OFFSET = 380
+PEAK_OFFSET = 0.065
 OFFSET = 29.91
-FS = 1500
+FS = 1200
 UART_STOP = 1e6
 PUMP_STOP = 195
 SYS_RATIO = 0.55
@@ -120,6 +120,7 @@ def find_min_and_max_values(start_index, y, samples):
             min_positions.append(mi)
             min_values.append(min_v)
             min_v = y[ii]
+    print(f"Length peaks: {len(peak_positions)}, length mins: {len(min_positions)}")
     return {"peak_positions": peak_positions, "peak_values": peak_values,
             "min_positions": min_positions, "min_values": min_values,
             "measured_values": measured_values}
@@ -154,7 +155,7 @@ def amplitudes_barplot(amplitudes, measured_values):
                  fontdict=FONT_TITLE)
     ax.set_xticks(list(range(len(measured_values))))
     ax.set_xticklabels(list(map(lambda x: f"{x:.2f}", measured_values)))
-    ax.set_xlabel("Korrigált nyers mérési adatok [Hgmm]", fontdict=FONT_LABEL)
+    ax.set_xlabel("Nyers mérési adatok [Hgmm]", fontdict=FONT_LABEL)
     ax.set_ylabel("Amplitúdók becsült értéke [Hgmm]", fontdict=FONT_LABEL)
     ax.grid(True, 'both', 'y')
     plt.setp(ax.xaxis.get_majorticklabels(), rotation=70)

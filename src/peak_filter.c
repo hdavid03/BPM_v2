@@ -25,7 +25,7 @@ void peak_filter_init(peak_filter_t* filter)
     }
     filter->x = X;
     filter->y = Y;
-    filter->pre_result = 0.0f;
+    filter->pre_result = 0.0F;
 }
 
 static void update_filter_status(peak_filter_t* filter, float input_sample)
