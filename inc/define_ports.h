@@ -26,8 +26,6 @@
 #define MOTORbm 0b00000100
 #define MOTOR_ON MOTORPORT.OUTSET = MOTORbm
 #define MOTOR_OFF MOTORPORT.OUTCLR  = MOTORbm
-#define OFF 0
-#define ON 1
 
 //5V SW switch on the pressure sensor
 #define PSWbm 0b01000000

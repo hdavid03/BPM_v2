@@ -14,8 +14,8 @@
 #include <bpm.h>
 
 #define UART_MARKER "XXXX"
-#define PUMP_STOP	195.0f
-#define LET_DOWN	40.0f
+#define P_MAX	195.0f
+#define P_MIN	40.0f
 
 static void status_ok_led(void);
 static void init_ports(void);
@@ -118,7 +118,7 @@ state check_pressure(void)
 	complete_conversion(&(resHgmm.value));
 	filter_output = filter_sample(&peak_filter, resHgmm.value);
 	usart_putbytes(resHgmm.bytes, sizeof(float));
-	if(resHgmm.value > PUMP_STOP)
+	if(resHgmm.value > P_MAX)
 		return DC_OFF;
 	return PUMP;
 }
@@ -138,7 +138,7 @@ state calculation(void)
 	filter_output = filter_sample(&peak_filter, resHgmm.value);
 	usart_putbytes(resHgmm.bytes, sizeof(float));
 	bpm_update_status(resHgmm.value, filter_output);
-	if(resHgmm.value < LET_DOWN)
+	if(resHgmm.value < P_MIN)
 		return END;
 	return CALC;
 }
